@@ -1,3 +1,5 @@
+#My Modifications and documentation of the build.
+
 # TARS from Interstellar x ChatGPT
 
 - Original article: https://www.hackster.io/charlesdiaz/how-to-build-your-own-replica-of-tars-from-interstellar-224833#comments
