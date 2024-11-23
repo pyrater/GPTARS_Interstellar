@@ -1,8 +1,14 @@
 My Modifications and documentation of the build.
 All files printed on Bambu Labs P1S
 All "Flexor" parts to be printed in TPU, all others PETG
+
 TPU: https://us.store.bambulab.com/products/tpu-for-ams
+
 PETG: https://us.store.bambulab.com/products/petg-hf
+
+
+The Default v9 chasis bottom does not allow for installation of a SD card, too close to the wall. Modified that part... will test.  (Chassis Bottom (Mod SD CARD).stl)
+
 
 # TARS from Interstellar x ChatGPT
 
