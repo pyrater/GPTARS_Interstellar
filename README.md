@@ -11,19 +11,11 @@ The Default v9 chasis bottom does not allow for installation of a SD card, too c
 
 Plan:
 LLM = ooba/openai/tabby 
-
 TTS = local or xttsv2 using xtts-api-server WITH VOICE clone
-
 SST = under stt/module_stt_standalone.py (Whisper.py)
-
 VAD = Vlad
-
 SD = Automatic1111
-
 Vision = Image Classifier
-
-24 Nov: Something seems off with the parts list vs the files, the 5 Inch screen will look werid and doesnt appear to fit.
-wiz.py appears to use MG996R
 
 Good Info: https://www.instagram.com/wizard.py/
 
@@ -32,6 +24,46 @@ Andrew uses: diymore 6PCS Metal Gear High Speed Torque Digital Servo Moto
 
 
 -Link: https://www.amazon.com/diymore-6-Pack-MG996R-Digital-Helicopter/dp/B0CGRP59HJ/ref=sr_1_5?sr=8-5
+
+
+My Hardware:
+
+Rods:
+https://www.amazon.com/gp/product/B01MAYQ12S/ref=ox_sc_act_title_1?smid=ATVPDKIKX0DER&psc=1
+https://www.amazon.com/gp/product/B0CTSX8SJS/ref=ox_sc_act_title_2?smid=A1NR50YASSZD11
+
+Servos:
+https://www.amazon.com/gp/product/B0CGRP59HJ/ref=ox_sc_act_title_3?smid=A3F3CVCOVVNP2J
+
+Bolts:
+https://www.amazon.com/gp/product/B0CR6DY4SS/ref=ox_sc_act_title_4?smid=A1ZRRCZIF57JQ9
+https://www.amazon.com/gp/product/B0D9GW9K4G/ref=ox_sc_act_title_5?smid=A1ZRRCZIF57JQ9
+https://www.amazon.com/gp/product/B0CR6G5XWC/ref=ox_sc_act_title_6?smid=A1ZRRCZIF57JQ9
+https://www.amazon.com/gp/product/B0CR6F3N45/ref=ox_sc_act_title_7?smid=A1ZRRCZIF57JQ9
+
+Springs:
+https://www.amazon.com/gp/product/B076M6SFFP/ref=ox_sc_act_title_8?smid=A1THAZDOWP300U&psc=1
+
+Bearings:
+https://www.amazon.com/gp/product/B07FW26HD4/ref=ox_sc_act_title_9?smid=ATVPDKIKX0DER&psc=1
+
+16-Channel 12-bit PWM Servo Driver with I2C Interface:
+https://www.amazon.com/gp/product/B00EIB0U7A/ref=ox_sc_act_title_10?smid=AAEX2EKCSXB7D&psc=1
+
+RPI Mic:
+https://www.amazon.com/gp/product/B086DRRP79/ref=ox_sc_act_title_11?smid=A1DWLG2LHSJB8R
+
+Linkage:
+https://www.amazon.com/gp/product/B0CRDRWYXW/ref=ox_sc_act_title_12?smid=A1NR50YASSZD11&psc=1
+
+Buck Convertor:
+https://www.amazon.com/gp/product/B07SGJSLDL/ref=ox_sc_act_title_13?smid=A3CX4TQNUXMB0L
+
+RPI 5:
+https://www.amazon.com/Raspberry-Pi-Quad-core-Cortex-A76-Processor/dp/B0CTQ3BQLS/ref=sr_1_2_sspa?sr=8-2-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1
+
+3" LCD:
+https://www.amazon.com/OSOYOO-3-5inch-Display-Protective-Raspberry/dp/B09CD9W6NQ/ref=sr_1_8?sr=8-8
 
 
 
