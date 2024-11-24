@@ -9,6 +9,38 @@ PETG: https://us.store.bambulab.com/products/petg-hf
 
 The Default v9 chasis bottom does not allow for installation of a SD card, too close to the wall. Modified that part... will test.  (Chassis Bottom (Mod SD CARD).stl)
 
+Plan:
+LLM = ooba/openai/tabby 
+
+TTS = local or xttsv2 using xtts-api-server WITH VOICE clone
+
+SST = under stt/module_stt_standalone.py (Whisper.py)
+
+VAD = Vlad
+
+SD = Automatic1111
+
+Vision = Image Classifier
+
+24 Nov: Something seems off with the parts list vs the files, the 5 Inch screen will look werid and doesnt appear to fit.
+wiz.py appears to use MG996R
+
+Good Info: https://www.instagram.com/wizard.py/
+
+wizard uses the MG996R 55g Digital RC Servo Motors High Torque Metal Gear Servo
+Andrew uses: diymore 6PCS Metal Gear High Speed Torque Digital Servo Moto
+
+
+-Link: https://www.amazon.com/diymore-6-Pack-MG996R-Digital-Helicopter/dp/B0CGRP59HJ/ref=sr_1_5?sr=8-5
+
+
+
+
+
+
+
+
+Orginal Fork info:
 
 # TARS from Interstellar x ChatGPT
 
