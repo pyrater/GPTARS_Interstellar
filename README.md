@@ -66,9 +66,8 @@ https://www.amazon.com/Raspberry-Pi-Quad-core-Cortex-A76-Processor/dp/B0CTQ3BQLS
 https://www.amazon.com/OSOYOO-3-5inch-Display-Protective-Raspberry/dp/B09CD9W6NQ/ref=sr_1_8?sr=8-8
 
 
-
-
-
+Servo Wires:
+https://www.amazon.com/OliYin-7-87in-Quadcopter-Extension-Futaba/dp/B0711TBZY2/ref=sr_1_7?sr=8-7
 
 
 
