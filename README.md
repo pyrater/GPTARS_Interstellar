@@ -26,6 +26,9 @@ Andrew uses: diymore 6PCS Metal Gear High Speed Torque Digital Servo Moto
 -Link: https://www.amazon.com/diymore-6-Pack-MG996R-Digital-Helicopter/dp/B0CGRP59HJ/ref=sr_1_5?sr=8-5
 
 
+Printing Draft / test is complete:
+![print](PrintComplete.jpg)
+
 My Hardware:
 
 Rods:
