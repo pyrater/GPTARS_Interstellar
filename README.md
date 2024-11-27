@@ -31,7 +31,9 @@ Printing Draft / test is complete:
 
 
 Software Demo (all locally hosted RTX 3060 streaming to RPI):
-![print](DemoWIP.mkv)
+[![Video Title](DemoWIP.mkv)](DemoWIP.mkv)
+
+
 
 My Hardware:
 
