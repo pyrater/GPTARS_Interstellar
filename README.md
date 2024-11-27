@@ -29,6 +29,10 @@ Andrew uses: diymore 6PCS Metal Gear High Speed Torque Digital Servo Moto
 Printing Draft / test is complete:
 ![print](PrintComplete.jpg)
 
+
+Software Demo (all locally hosted RTX 3060 streaming to RPI):
+![print](DemoWIP.mkv)
+
 My Hardware:
 
 Rods:
