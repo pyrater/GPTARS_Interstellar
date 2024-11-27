@@ -31,7 +31,11 @@ Printing Draft / test is complete:
 
 
 Software Demo (all locally hosted RTX 3060 streaming to RPI):
-[![Video Title](DemoWIP.mkv)](DemoWIP.mkv)
+<video width="640" height="360" controls>
+  <source src="DemoWIP.mkv" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
 
 
 
