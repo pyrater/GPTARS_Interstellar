@@ -1,7 +1,14 @@
 # **My Modifications and Documentation of the Build**
 
 ---
+Printing Draft / test is complete:
+![print](PrintComplete.jpg)
 
+Software Demo (all locally hosted RTX 3060 streaming to RPI):
+
+[![Video Title](https://img.youtube.com/vi/4YObs8BV3Mc/0.jpg)](https://www.youtube.com/watch?v=4YObs8BV3Mc)
+
+---
 ## **3D Printing**
 
 - **Printer**: Bambu Labs P1S
@@ -80,3 +87,10 @@
   - [ForgeLabs](https://forgelabs.ca/)
   - [JLC3DP](https://jlc3dp.com/3d-printing-quote)
   - [Treatstock](https://www.treatstock.com/)
+
+---
+
+## **Additional Links and Resources**
+- https://www.instagram.com/wizard.py/
+- https://www.youtube.com/watch?v=kRDku5vukIw
+- https://www.hackster.io/charlesdiaz/how-to-build-your-own-replica-of-tars-from-interstellar-224833
