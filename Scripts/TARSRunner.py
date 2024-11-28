@@ -19,6 +19,8 @@ pwm.set_pwm(8, 8, 240)
 # Set frequency to 60hz, good for servos.
 pwm.set_pwm_freq(60)
 
+# You may need to edit the below 'event' number depending on your system.
+# Suggest you run ls /dev/input before enabling the BlueTooth controller and again after to identify the addition
 gamepad = InputDevice('/dev/input/event3')
 
 lTrg = 37
