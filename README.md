@@ -10,10 +10,9 @@ PETG: https://us.store.bambulab.com/products/petg-hf
 The Default v9 chasis bottom does not allow for installation of a SD card, too close to the wall. Modified that part... will test.  (Chassis Bottom (Mod SD CARD).stl)
 
 Plan:
-LLM = ooba/openai/tabby 
-TTS = local or xttsv2 using xtts-api-server WITH VOICE clone
-SST = under stt/module_stt_standalone.py (Whisper.py)
-VAD = Vlad
+LLM = ooba/openai/tabby (recommend https://github.com/theroyallab/tabbyAPI)
+TTS = local or xttsv2 using xtts-api-server WITH VOICE clone (https://github.com/daswer123/xtts-api-server)
+SST = uses vosk
 SD = Automatic1111
 Vision = Image Classifier
 
