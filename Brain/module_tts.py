@@ -29,10 +29,10 @@ def get_tts_stream(text_to_read, ttsurl, ttsclone):
             engine.setProperty('volume', 1.0)  # Adjust the volume
 
             # Generate the TTS and save it to the specified output audio file
-            engine.save_to_file(text_to_read, "TTS/output.wav")
+            engine.save_to_file(text_to_read, "output.wav")
             engine.runAndWait()
 
-            with open("TTS/output.wav", 'rb') as audio_file:
+            with open("output.wav", 'rb') as audio_file:
                 while True:
                     chunk = audio_file.read(chunk_size)
                     if not chunk:
@@ -40,7 +40,6 @@ def get_tts_stream(text_to_read, ttsurl, ttsclone):
                     yield chunk
 
         elif charvoice and ttsoption == "xttsv2":
-
             full_url = f"{ttsurl}/tts_stream"
             params = {
                 'text': text_to_read,

@@ -4,6 +4,7 @@ import sounddevice as sd
 from vosk import Model, KaldiRecognizer
 from pocketsphinx import LiveSpeech
 
+
 # List of TARS-style responses
 tars_responses = [
     "Yes? What do you need?",

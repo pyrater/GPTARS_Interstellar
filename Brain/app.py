@@ -21,9 +21,6 @@ from flask import (
     render_template,
     Response,
 )
-from flask_cors import CORS
-from flask_socketio import SocketIO
-
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Set the working directory to the base directory
@@ -96,126 +93,6 @@ from module_engine import *
 from module_tts import *
 from module_imagesummary import *
 
-app = Flask(__name__, template_folder='www/templates', static_url_path='/static', static_folder='www/static')
-CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*", logger=False, engineio_logger=False)
-
-def send_heartbeat():
-    while True:
-        socketio.sleep(10)  # Send heartbeat every 10 seconds
-        socketio.emit('heartbeat', {'status': 'alive'})
-
-@socketio.on('connect')
-def handle_connect():
-    print('Client connected')
-    socketio.start_background_task(send_heartbeat)
-
-@socketio.on('heartbeat')
-def handle_heartbeat(message):
-    #print('Received heartbeat from client')
-    #print('Client connected')
-    pass
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    print('Client disconnected')
-
-@app.route('/')
-def chat_interface():
-    initial_msg()
-    character_responses = remember_shortterm(1)  # This returns last memory
-
-    if character_responses:
-        character_response = character_responses[0]
-        bot_response = character_response.get('bot_response')
-        if bot_response:
-            character_response = bot_response
-        else:
-            character_response = json.dumps(char_greeting)
-    else:
-        character_response = json.dumps(char_greeting)
-    
-    character_response = character_response.replace("{{char}}", char_name).replace("{{user}}", user_name)
-
-    return render_template('index.html',
-                           char_name=json.dumps(char_name),
-                           char_greeting=character_response,
-                           talkinghead_base_url=json.dumps(talkinghead_base_url))
-
-@app.route('/holo') 
-def holo():
-    return render_template('holo.html')
-    
-@app.route('/process_llm', methods=['POST'])
-def receive_user_message():
-    user_message = request.form['message']
-    # Process the user message here
-    
-    if "shutdown pc" in user_message.lower():
-        os.system('shutdown /s /t 0')
-
-    global start_time, latest_text_to_read
-    start_time = time.time() 
-    reply = process_completion(user_message)
-    latest_text_to_read = reply
-    socketio.emit('bot_message', {'message': latest_text_to_read})
-    return jsonify({"status": "success"})
-
-@app.route('/result_feed_status') #Not really the intent will delete later
-def result_feed_status():
-    result_feed_available = True
-    return jsonify({'available': result_feed_available})
-
-@app.route('/audio_stream')
-def audio_stream():
-    talking("stop", start_time, talkinghead_base_url)
-    def generate():
-        for chunk in get_tts_stream(latest_text_to_read, ttsurl, ttsclone):
-            yield chunk
-    return Response(generate(), mimetype="audio/mpeg")
-
-@app.route('/upload', methods=['GET', 'POST'])
-def upload():
-    import base64
-    from io import BytesIO
-    from PIL import Image, UnidentifiedImageError
-
-    global start_time, latest_text_to_read
-    start_time = time.time() 
-
-    # Assuming 'file' is the key in the FormData object containing the file
-    file = request.files['file']
-    if file:
-        # Convert the image to a BytesIO buffer, then to a base64 string
-        buffer = BytesIO()
-        file.save(buffer)
-        base64_image = base64.b64encode(buffer.getvalue()).decode('utf-8')
-
-        img_html = f'<img height="256" src="data:image/png;base64,{base64_image}"></img>'
-        socketio.emit('user_message', {'message': img_html})
-
-        # Optionally, for further processing like getting a caption
-        try:
-            buffer.seek(0)  # Reset buffer position to the beginning
-            raw_image = Image.open(buffer).convert('RGB')
-            # Proceed with processing the image, like getting a caption
-            caption = "Image processed successfully"
-        except UnidentifiedImageError as e:
-            print(f"Failed to open the image: {e}")
-            caption = "Failed to process image"
-
-        caption = get_image_caption_from_base64(base64_image)
-        cmessage = f"*Sends {char_name} a picture of: {caption}*"
-
-        reply = process_completion(cmessage)
-        latest_text_to_read = reply
-        socketio.emit('bot_message', {'message': latest_text_to_read})
-
-        return 'Upload OK'
-    else:
-        return 'No file part', 400
-    
-
 def play_audio_stream(tts_stream, samplerate=22050, channels=1):
     """
     Play the audio stream through speakers using SoundDevice.
@@ -234,9 +111,6 @@ def play_audio_stream(tts_stream, samplerate=22050, channels=1):
             module_stt.transcribe_command()  # go back to listening for voice (non wake word)
     except Exception as e:
         print(f"Error during audio playback: {e}")
-
-
-
 
 def receive_user_message_voice(user_message):
     """
@@ -277,13 +151,6 @@ def receive_user_message_voice(user_message):
         print("Invalid JSON format. Could not process user message.")
     except Exception as e:
         print(f"Error processing message: {e}")
-
-
-  
-def start_flask():
-    print("Starting Flask app...")
-    socketio.run(app, host='0.0.0.0')
-    print("Flask app started.")
 
 def llm_process(userinput, botresponse):
     #threading.Thread(target=talkTTS, args=(botresponse, start_time, talkinghead_base_url)).start()
@@ -578,15 +445,6 @@ def process_completion(text):
     reply = llm_process(text, botres)
     return reply
 
-def load_TalkingHead(full_path):
-    api_url = f"{talkinghead_base_url}/api/talkinghead/load"
-    with open(full_path, 'rb') as file:
-        files = {'file': file}
-        response = requests.post(api_url, files=files)
-        print(response.text)
-        if response.text == "OK":  
-            print("do")
-
 def initial_msg(): # INITIAL LOAD
     global char_greeting
     print("Loading Operating System for TARS.........")
@@ -630,50 +488,9 @@ def initial_msg(): # INITIAL LOAD
         print(f"Error: {e}")
 
 if __name__ == "__main__":
-    
-    intents = discord.Intents.default()
-    intents.message_content = True
-    client = discord.Client(intents=intents)
-
-    # Event: Bot has connected to Discord
-    @client.event
-    async def on_ready():
-        print(f'Logged in as {client.user}')
-
-        channel = client.get_channel(channel_id)
-        if channel:
-            await channel.send(char_greeting)
-
-    @client.event
-    async def on_message(message):
-        # Ignore messages from the bot itself
-        if message.author == client.user:
-            return
-
-
-        # Check if the message starts with a mention of the bot
-        if message.content.startswith(f'<@{client.user.id}>'):
-            #await message.channel.send('test complete')
-            user_message = message.content
-            global start_time, latest_text_to_read
-            start_time = time.time() 
-            print(user_message)
-            reply = process_completion(user_message)
-            print(reply)
-            latest_text_to_read = reply
-
-            await message.channel.send(latest_text_to_read)
-
-    flask_thread = threading.Thread(target=start_flask)
-    flask_thread.start()
-
     flask_thread = threading.Thread(target=module_btcontroller.start_controls)
     flask_thread.start()
 
     flask_thread = threading.Thread(target=module_stt.start_stt)
     flask_thread.start()
     module_stt.set_message_callback(receive_user_message_voice)
-
-    
-    if discordenabled == 'True':
-        client.run(TOKEN)
