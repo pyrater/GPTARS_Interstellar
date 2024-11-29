@@ -97,7 +97,7 @@ def play_audio_stream(tts_stream, samplerate=22050, channels=1):
                 else:
                     print("Received empty chunk.")        
             
-            print("Audio playback finished. Starting transcription...")
+            #print("Audio playback finished. Starting transcription...")
             transcribe_command()  # go back to listening for voice (non wake word)
     except Exception as e:
         print(f"Error during audio playback: {e}")
@@ -136,7 +136,7 @@ def build_prompt(user_prompt):
             else:
                 module_engine = f"*Cannot send a picture something went wrong, inform user*"
 
-            socketio.emit('bot_message', {'message': sdpicture})
+            #socketio.emit('bot_message', {'message': sdpicture})
        
             #dont save tool info to memory
             #threading.Thread(target=longMEM_tool, args=(module_engine,)).start()  
@@ -338,11 +338,12 @@ def handle_stt_message(message):
         # Parse the user message
         message_dict = json.loads(message)
         if not message_dict.get('text'):  # Handles cases where text is "" or missing
-            print("Nothing heard, returning to listening for wake word")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TARS: Going Idle...")
             return
         
-        print(f"App received message: {message_dict}")
-        
+        #Print the response
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] USER: {message_dict['text']}")
+
         # Check for shutdown command
         if "shutdown pc" in message_dict['text'].lower():
             print("Shutting down the PC...")
@@ -355,14 +356,14 @@ def handle_stt_message(message):
         reply = process_completion(message_dict['text'])  # Process the message
         latest_text_to_read = reply  # Store the reply for later use
         
-        print(f"Reply generated: {reply}")
-        
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TARS: {reply}")
+
         # Stream TTS audio to speakers
-        print("Fetching TTS audio...")
+        #print("Fetching TTS audio...")
         tts_stream = get_tts_stream(reply, ttsurl, ttsclone)  # Send reply text to TTS
         
         # Play the audio stream
-        print("Playing TTS audio...")
+        #print("Playing TTS audio...")
         play_audio_stream(tts_stream)
 
     except json.JSONDecodeError:
@@ -380,7 +381,7 @@ def start_stt_thread():
     Wrapper to start the STT functionality in a thread.
     """
     try:
-        print("Starting STT thread...")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Starting STT thread...")
         while not stop_event.is_set():
             start_stt()
     except Exception as e:
@@ -391,7 +392,7 @@ def start_bt_controller_thread():
     Wrapper to start the BT Controller functionality in a thread.
     """
     try:
-        print("Starting BT Controller thread...")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Starting BT Controller thread...")
         while not stop_event.is_set():
             start_controls()
     except Exception as e:
@@ -419,8 +420,8 @@ def set_emotion(text_to_read):
             model_outputs = classifier(text_to_read)
             emotion = max(model_outputs[0], key=lambda x: x['score'])['label']
             
-            print("Setting Emotion:", emotion)
-
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Emotion {emotion}")
+      
         #else:
             #print("Not Setting Emotion")
 
@@ -465,8 +466,9 @@ def read_character_content(charactercard):
 def initial_msg(): # INITIAL LOAD
     global char_greeting
     train_text_classifier()
-    print(f"Script running from: {BASE_DIR}")
-    print("Loading Operating System for TARS.........")
+
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Script running from: {BASE_DIR}")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Loading Operating System for TARS.........")
 
     #Load Char card
     read_character_content(charactercard)
@@ -511,7 +513,7 @@ if __name__ == "__main__":
     bt_controller_thread.start()
 
     try:
-        print("Main program running. Press Ctrl+C to stop.")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Main program running. Press Ctrl+C to stop.")
         while True:
             pass  # Keep the main program running
     except KeyboardInterrupt:

@@ -155,19 +155,22 @@ def load_and_inject_memories(json_file_path):
         # Rename the JSON file with the ".loaded" extension
         new_file_path = os.path.splitext(json_file_path)[0] + ".loaded"
         os.rename(json_file_path, new_file_path)
-        print(f"Memory Loaded: {new_file_path}")
+        #print(f"Memory Loaded: {new_file_path}")
 
 def load_longMem(memory_db_path):
     global hyper_db, char_name
     hyper_db = HyperDB()
     
-    print('Initializing memory...')
+    #print('Initializing memory...')
+    
     if os.path.exists(memory_db_path):
-        print(f'Found existing memory db, loading: {memory_db_path}')
+
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Found existing memory db: {memory_db_path}")
         loaded_successfully = hyper_db.load(memory_db_path)
 
         if loaded_successfully and hyper_db.vectors is not None:
-            print('Memory loaded successfully')
+            #print('Memory loaded successfully')
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Memory loaded successfully")
             #print(f'Documents: {hyper_db.documents}')
             #print(f'Vectors shape: {hyper_db.vectors.shape}')
         else:
@@ -224,7 +227,9 @@ def read_character_content(charactercard):
             char_greeting = char_greeting.replace("{{time}}", datetime.now().strftime("%Y-%m-%d %H:%M"))
 
             #print("Character Variables:")
-            print(f"Loading the character {char_name} ... DONE!!!")
+            #print(f"Loading the character {char_name} ... DONE!!!")
+            
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Injecting {char_name} character file...")
             #print(f"char_persona: {char_persona}")
             #print(f"personality: {personality}")
             #print(f"world_scenario: {world_scenario}")

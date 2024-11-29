@@ -6,6 +6,7 @@ from pocketsphinx import LiveSpeech
 from threading import Event
 import os
 import sys
+from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
 
@@ -60,14 +61,18 @@ def detect_wake_word():
     """
     Continuously listens for the wake word using Pocketsphinx.
     """
-    debug_print("Listening for wake word...")
+  
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TARS: Idle...")
+    
+
     speech = LiveSpeech(lm=False, keyphrase=WAKE_PHRASE, kws_threshold=1e-20)
     for phrase in speech:
         debug_print(f"Detected phrase: {phrase.hypothesis()}")
         if WAKE_PHRASE in phrase.hypothesis().lower():
             # Select a random response
             response = random.choice(tars_responses)
-            print(f"TARS: {response}")  
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TARS: {response}")
             trigger_wakeword_function(response)
             return True
 
@@ -85,7 +90,8 @@ def transcribe_command():
     """
     Listens for a command after the wake word is detected and transcribes it using Vosk.
     """
-    print("Listening for command...")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TARS: Listening...")
+
     recognizer = KaldiRecognizer(vosk_model, SAMPLE_RATE)
     with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="int16") as stream:
         while True:
@@ -145,5 +151,5 @@ def set_message_callback(callback):
     Set the callback function to handle recognized messages.
     """
     global message_callback
-    print("Setting message callback for STT.")
+    #print("Setting message callback for STT.")
     message_callback = callback
