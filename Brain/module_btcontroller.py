@@ -1,6 +1,6 @@
 
 import evdev
-import datetime
+from datetime import datetime
 #MAIN FUNCTION
 # Set the path to your gamepad
 gamepad_path = '/dev/input/event6'

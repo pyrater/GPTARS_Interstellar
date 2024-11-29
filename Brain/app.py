@@ -464,14 +464,27 @@ def read_character_content(charactercard):
     except Exception as e:
         print(f"Error: {e}")
 
-def initial_msg(): # INITIAL LOAD
+_initial_msg_executed = False
+
+def initial_msg():
+    global _initial_msg_executed
     global char_greeting
+    if _initial_msg_executed:
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DEBUG: initial_msg() skipped, already executed")
+        return
+    _initial_msg_executed = True
+
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DEBUG: initial_msg() called")
+    
+
+    read_character_content(charactercard)
     train_text_classifier()
 
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Script running from: {BASE_DIR}")
 
     #Load Char card
-    read_character_content(charactercard)
+    
+
     #Try to set inital settings for TTS Cloning
     try:
         url = f"{ttsurl}/set_tts_settings"
