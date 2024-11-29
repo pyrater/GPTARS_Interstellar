@@ -38,7 +38,6 @@ def debug_print(message):
     if DEBUG:
         print(message)
 
-
 # Initialize Vosk model for command transcription
 VOSK_MODEL_PATH = os.path.join(BASE_DIR, "vosk-model-small-en-us-0.15")
 if not os.path.exists(VOSK_MODEL_PATH):
@@ -50,12 +49,6 @@ running = False
 message_callback = None  # Callback to handle recognized messages
 wakeword_callback = None  # Global variable to hold the reference
 
-def set_message_callback(callback):
-    """
-    Set the callback function to handle recognized messages.
-    """
-    global message_callback
-    message_callback = callback
 
 def detect_wake_word():
     """
