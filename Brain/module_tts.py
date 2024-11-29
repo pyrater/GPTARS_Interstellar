@@ -11,7 +11,6 @@ ttsoption = config['TTS']['ttsoption']
 ttsclone = config['TTS']['ttsclone']
 ttsurl = config['TTS']['ttsurl']
 voiceonly = config.getboolean('TTS', 'voiceonly')
-talkinghead_base_url = config['TALKINGHEAD']['talkinghead_base_url']
 
 start_time = time.time()
 
