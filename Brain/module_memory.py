@@ -6,8 +6,18 @@ from datetime import datetime
 import re
 from hyperdb import *
 from memory.hyperdb import *
-from app import token_count
 import json
+import configparser
+import sys
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Set the working directory to the base directory
+os.chdir(BASE_DIR)
+sys.path.insert(0, BASE_DIR)
+sys.path.append(os.getcwd())
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 global hyper_db
 global memory_db_path
@@ -215,9 +225,6 @@ def read_character_content(charactercard):
             example_dialogue_match = re.search(r'("example_dialogue"|"mes_example"):\s*"([^"]*)"', content)
             example_dialogue = example_dialogue_match.group(2) if example_dialogue_match else ''
 
-            import configparser
-            config = configparser.ConfigParser()
-            config.read('config.ini')
             # Populate the global variables
             global user_name
             user_name = config['CHAR']['user_name']
@@ -241,11 +248,39 @@ def read_character_content(charactercard):
     except Exception as e:
         print(f"Error: {e}")
 
-read_character_content("character/TARS.json")     
+def token_count(text):
+    
+    if config['LLM']['backend'] == "ooba":
+        url = f"{config['LLM']['base_url']}/v1/internal/token-count"
+
+    elif config['LLM']['backend'] == "tabby":
+        url = f"{config['LLM']['base_url']}/v1/token/encode"  # Fixed typo here
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {config['LLM']['api_key']}"
+    }
+    data = {
+        "text": text
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print("Error:", response.status_code, response.text)
+        return None
+        
+read_character_content(config['CHAR']['charactercard'])
 #LOAD
-memory_db_path = os.path.abspath("memory/TARS.pickle.gz")
+memory_db_path = os.path.abspath(f"memory/{config['CHAR']['char_name']}.pickle.gz")
 load_longMem(memory_db_path)
 
 #inject any memories needed
 load_memories = os.path.abspath("memory/load_memories.json")
 load_and_inject_memories(load_memories)
+
+
+
+
