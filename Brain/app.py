@@ -82,6 +82,7 @@ module_engine = None
 start_time = time.time() #calc time
 stop_event = threading.Event()
 
+
 #TTS
 def play_audio_stream(tts_stream, samplerate=22050, channels=1):
     """
@@ -467,8 +468,7 @@ def initial_msg(): # INITIAL LOAD
     global char_greeting
     train_text_classifier()
 
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Script running from: {BASE_DIR}")
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Loading Operating System for TARS.........")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Script running from: {BASE_DIR}")
 
     #Load Char card
     read_character_content(charactercard)
@@ -492,12 +492,15 @@ def initial_msg(): # INITIAL LOAD
         }
         response = requests.post(url, headers=headers, json=payload)
         if response.status_code == 200:
-            print('Settings updated successfully.')
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: TTS Settings updated successfully.")
         else:
             print(f'Failed to update settings. Status code: {response.status_code}')
             print('Response:', response.text)
     except Exception as e:
         print(f"Error: {e}")
+
+#Trigger once
+initial_msg()
 
 #MAIN
 if __name__ == "__main__":
