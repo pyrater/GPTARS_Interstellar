@@ -5,10 +5,14 @@ import random
 import requests
 from typing import List, Union
 
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 def get_embedding_new(documents):
-    base_url = "http://192.168.2.137:1234"  # Replace with your API base URL
-    api_key = "xyz"
+    base_url = config.getboolean('LLM', 'base_url')  # Replace with your API base URL
+    api_key = config.getboolean('LLM', 'api_key')
     encoding_format = "text/plain"
     
     url = f"{base_url}/v1/embeddings"

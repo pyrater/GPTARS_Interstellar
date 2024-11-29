@@ -13,6 +13,7 @@ def start_controls():
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: {gamepad.name} connected.")
     except FileNotFoundError:
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Gamepad not found at {gamepad_path}")
+        return
         exit()
 
     # Define mappings for button events

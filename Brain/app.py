@@ -33,6 +33,7 @@ sys.path.append(os.getcwd())
 config = configparser.ConfigParser()
 config.read('config.ini')
 
+
 # TTS Section
 ttsurl = config['TTS']['ttsurl']
 charvoice = config.getboolean('TTS', 'charvoice')
