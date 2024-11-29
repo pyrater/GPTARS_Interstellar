@@ -59,8 +59,9 @@ def caption_image():
             return jsonify({"error": "No image file provided"}), 400
 
         # Read the uploaded image into a BytesIO object
-        image_file = request.files['image']5678ge_file.read())
-        image = Image.open(image_bytes)
+        image_file = request.files['image']
+        image_bytes = BytesIO(image_file.read())
+
 
         # Generate caption
         inputs = blip_processor(image, return_tensors="pt").to(device)
