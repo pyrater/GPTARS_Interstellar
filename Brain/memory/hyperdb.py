@@ -241,7 +241,7 @@ class HyperDB:
                 pickle.dump(data, f)
 
     def load(self, storage_file):
-        print(f"loading {storage_file}")
+        #print(f"loading {storage_file}")
         try:
             if storage_file.endswith(".gz"):
                 with gzip.open(storage_file, "rb") as f:
