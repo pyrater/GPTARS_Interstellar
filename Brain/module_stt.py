@@ -3,7 +3,15 @@ import random
 import sounddevice as sd
 from vosk import Model, KaldiRecognizer
 from pocketsphinx import LiveSpeech
+from threading import Event
+import os
+import sys
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
+
+os.chdir(BASE_DIR)
+sys.path.insert(0, BASE_DIR)
+sys.path.append(os.getcwd())
 
 # List of TARS-style responses
 tars_responses = [
@@ -29,8 +37,9 @@ def debug_print(message):
     if DEBUG:
         print(message)
 
+
 # Initialize Vosk model for command transcription
-VOSK_MODEL_PATH = "/home/pyrater/Desktop/GPTARS_Interstellar/Brain/vosk-model-small-en-us-0.15/"
+VOSK_MODEL_PATH = os.path.join(BASE_DIR, "vosk-model-small-en-us-0.15")
 if not os.path.exists(VOSK_MODEL_PATH):
     raise FileNotFoundError("Vosk model not found. Download from: https://alphacephei.com/vosk/models")
 vosk_model = Model(VOSK_MODEL_PATH)
@@ -38,6 +47,7 @@ vosk_model = Model(VOSK_MODEL_PATH)
 # Global running flag and callback
 running = False
 message_callback = None  # Callback to handle recognized messages
+wakeword_callback = None  # Global variable to hold the reference
 
 def set_message_callback(callback):
     """
@@ -57,8 +67,19 @@ def detect_wake_word():
         if WAKE_PHRASE in phrase.hypothesis().lower():
             # Select a random response
             response = random.choice(tars_responses)
-            print(f"TARS: {response}")
+            print(f"TARS: {response}")  
+            trigger_wakeword_function(response)
             return True
+
+def set_wakewordtts_callback(callback_function):
+    global wakeword_callback
+    wakeword_callback = callback_function
+
+def trigger_wakeword_function(response):
+    if wakeword_callback:
+        wakeword_callback(response)
+    else:
+        print("App callback is not set.")
 
 def transcribe_command():
     """
@@ -89,20 +110,27 @@ def transcribe_command():
                 print(f"Error processing audio stream: {e}")
                 break
 
-def start_stt():
+def start_stt(stop_event: Event = None):
     """
-    Start the voice assistant.
+    Start the voice assistant. Listens for wake word and transcribes commands.
     """
     global running
     running = True
+
     try:
         while running:
+            if stop_event and stop_event.is_set():  # Check for stop signal
+                print("Stopping STT...")
+                break
+
             if detect_wake_word():
                 transcribe_command()
     except KeyboardInterrupt:
-        print("\nExiting...")
+        print("\nSTT interrupted by user.")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error in STT: {e}")
+    finally:
+        print("STT stopped.")
 
 def stop_stt():
     """
@@ -111,3 +139,11 @@ def stop_stt():
     global running
     running = False
     print("Voice assistant stopped.")
+
+def set_message_callback(callback):
+    """
+    Set the callback function to handle recognized messages.
+    """
+    global message_callback
+    print("Setting message callback for STT.")
+    message_callback = callback

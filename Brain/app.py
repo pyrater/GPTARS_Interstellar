@@ -1,3 +1,7 @@
+#Define needed globals
+global start_time
+global char_name, char_persona, personality, world_scenario, char_greeting, example_dialogue
+
 #needed imports
 import os
 import sys
@@ -68,8 +72,6 @@ channel_id = config['DISCORD']['channel_id']
 discordenabled = config['DISCORD']['enabled'] 
 
 # Global Variables (if needed)
-global start_time
-global char_name, char_persona, personality, world_scenario, char_greeting, example_dialogue
 global_source_image = None
 global_result_image = None
 global_reload = None
@@ -78,7 +80,9 @@ is_talking = False
 global_timer_paused = False
 module_engine = None
 start_time = time.time() #calc time
+stop_event = threading.Event()
 
+#TTS
 def play_audio_stream(tts_stream, samplerate=22050, channels=1):
     """
     Play the audio stream through speakers using SoundDevice.
@@ -98,132 +102,7 @@ def play_audio_stream(tts_stream, samplerate=22050, channels=1):
     except Exception as e:
         print(f"Error during audio playback: {e}")
 
-def receive_user_message_voice(user_message):
-    """
-    Process the recognized message from module_stt and stream audio response to speakers.
-    """
-    try:
-        # Parse the user message
-        message_dict = json.loads(user_message)
-        if not message_dict.get('text'):  # Handles cases where text is "" or missing
-            print("Nothing heard, returning to listening for wake word")
-            return
-        
-        print(f"App received message: {message_dict}")
-        
-        # Check for shutdown command
-        if "shutdown pc" in message_dict['text'].lower():
-            print("Shutting down the PC...")
-            os.system('shutdown /s /t 0')
-            return  # Exit function after issuing shutdown command
-        
-        # Process the message using process_completion
-        global start_time, latest_text_to_read
-        start_time = time.time()  # Record the start time for tracking
-        reply = process_completion(message_dict['text'])  # Process the message
-        latest_text_to_read = reply  # Store the reply for later use
-        
-        print(f"Reply generated: {reply}")
-        
-        # Stream TTS audio to speakers
-        print("Fetching TTS audio...")
-        tts_stream = get_tts_stream(reply, ttsurl, ttsclone)  # Send reply text to TTS
-        
-        # Play the audio stream
-        print("Playing TTS audio...")
-        play_audio_stream(tts_stream)
-
-    except json.JSONDecodeError:
-        print("Invalid JSON format. Could not process user message.")
-    except Exception as e:
-        print(f"Error processing message: {e}")
-
-def llm_process(userinput, botresponse):
-    #threading.Thread(target=talkTTS, args=(botresponse, start_time, talkinghead_base_url)).start()
-    #the index.html now requests the TTS so the client pulls it not server pushing it
-
-    threading.Thread(target=longMEM_thread, args=(userinput, botresponse)).start()
-    
-    if emotions == True: #set emotion
-        threading.Thread(target=set_emotion, args=(botresponse,)).start()
-
-    return botresponse
-
-def set_emotion(text_to_read):
-    from transformers import pipeline
-    
-    sizecheck = token_count(text_to_read)
-    if 'length' in sizecheck:
-        value_to_convert = sizecheck['length']
-    
-    if isinstance(value_to_convert, (int, float)):
-        if value_to_convert <= 511:
-            classifier = pipeline(task="text-classification", model="SamLowe/roberta-base-go_emotions", top_k=None)
-            model_outputs = classifier(text_to_read)
-            emotion = max(model_outputs[0], key=lambda x: x['score'])['label']
-            
-            print("Setting Emotion:", emotion)
-
-        #else:
-            #print("Not Setting Emotion")
-
-def read_character_content(charactercard):
-    global char_name, char_persona, personality, world_scenario, char_greeting, example_dialogue
-
-    try:
-        with open(charactercard, "r") as file:
-            data = json.load(file)
-
-            now = datetime.now()
-            date = now.strftime("%m/%d/%Y")
-            time = now.strftime("%H:%M:%S")
-            dtg = f"Current Date: {date}\nCurrent Time: {time}\n"
-            dtg2 = f"{date} at {time}\n"
-
-            placeholders = {
-                "{{user}}": user_name,
-                "{{char}}": char_name,
-                "{{time}}": dtg2
-            }
-
-            # Replace placeholders in strings within the dictionary
-            for key, value in data.items():
-                if isinstance(value, str):
-                    for placeholder, replacement in placeholders.items():
-                        data[key] = value.replace(placeholder, replacement)
-
-
-            char_name = data.get("char_name", char_name) or data.get("name", "")
-            char_persona = data.get("char_persona", char_persona) or data.get("description", "")
-            personality = data.get("personality", personality)
-            world_scenario = data.get("world_scenario", world_scenario) or data.get("scenario", "")
-            char_greeting = data.get("char_greeting", char_greeting) or data.get("first_mes", "")
-            example_dialogue = data.get("example_dialogue", example_dialogue) or data.get("mes_example", "")
-
-    except FileNotFoundError:
-        print(f"Character file '{charactercard}' not found.")
-    except Exception as e:
-        print(f"Error: {e}")
-
-def extract_after_target(character_response, target_strings):
-    """
-    Extracts text after the first occurrence of any target string in the list items.
-    
-    :param character_response: List of dictionaries with text content.
-    :param target_strings: List of target strings to search for.
-    :return: Extracted text after the first found target string, with the last two characters removed, or None if not found.
-    """
-    for target_string in target_strings:
-        for item in character_response:
-            text_content = item.get('text', '')
-            position = text_content.find(target_string)
-            if position != -1:
-                # Extract everything after the target string and remove the last two characters
-                extrtext = text_content[position + len(target_string):-1]
-                finalextrtext = extrtext[1:-1] if extrtext.startswith('"') and extrtext.endswith('"') else extrtext.strip('"')
-                return finalextrtext
-    return None
-
+#LLM
 def build_prompt(user_prompt):
     global char_name, char_persona, personality, world_scenario, char_greeting, example_dialogue, voiceonly, systemprompt, instructionprompt
     now = datetime.now()
@@ -431,6 +310,158 @@ def process_completion(text):
     reply = llm_process(text, botres)
     return reply
 
+def extract_after_target(character_response, target_strings):
+    """
+    Extracts text after the first occurrence of any target string in the list items.
+    
+    :param character_response: List of dictionaries with text content.
+    :param target_strings: List of target strings to search for.
+    :return: Extracted text after the first found target string, with the last two characters removed, or None if not found.
+    """
+    for target_string in target_strings:
+        for item in character_response:
+            text_content = item.get('text', '')
+            position = text_content.find(target_string)
+            if position != -1:
+                # Extract everything after the target string and remove the last two characters
+                extrtext = text_content[position + len(target_string):-1]
+                finalextrtext = extrtext[1:-1] if extrtext.startswith('"') and extrtext.endswith('"') else extrtext.strip('"')
+                return finalextrtext
+    return None
+
+#TTS
+def handle_stt_message(message):
+    """
+    Process the recognized message from module_stt and stream audio response to speakers.
+    """
+    try:
+        # Parse the user message
+        message_dict = json.loads(message)
+        if not message_dict.get('text'):  # Handles cases where text is "" or missing
+            print("Nothing heard, returning to listening for wake word")
+            return
+        
+        print(f"App received message: {message_dict}")
+        
+        # Check for shutdown command
+        if "shutdown pc" in message_dict['text'].lower():
+            print("Shutting down the PC...")
+            os.system('shutdown /s /t 0')
+            return  # Exit function after issuing shutdown command
+        
+        # Process the message using process_completion
+        global start_time, latest_text_to_read
+        start_time = time.time()  # Record the start time for tracking
+        reply = process_completion(message_dict['text'])  # Process the message
+        latest_text_to_read = reply  # Store the reply for later use
+        
+        print(f"Reply generated: {reply}")
+        
+        # Stream TTS audio to speakers
+        print("Fetching TTS audio...")
+        tts_stream = get_tts_stream(reply, ttsurl, ttsclone)  # Send reply text to TTS
+        
+        # Play the audio stream
+        print("Playing TTS audio...")
+        play_audio_stream(tts_stream)
+
+    except json.JSONDecodeError:
+        print("Invalid JSON format. Could not process user message.")
+    except Exception as e:
+        print(f"Error processing message: {e}")
+
+def wake_word_tts(data):
+    tts_stream = get_tts_stream(data, ttsurl, ttsclone)
+    play_audio_stream(tts_stream)
+
+#THREADS
+def start_stt_thread():
+    """
+    Wrapper to start the STT functionality in a thread.
+    """
+    try:
+        print("Starting STT thread...")
+        while not stop_event.is_set():
+            start_stt()
+    except Exception as e:
+        print(f"Error in STT thread: {e}")
+
+def start_bt_controller_thread():
+    """
+    Wrapper to start the BT Controller functionality in a thread.
+    """
+    try:
+        print("Starting BT Controller thread...")
+        while not stop_event.is_set():
+            start_controls()
+    except Exception as e:
+        print(f"Error in BT Controller thread: {e}")
+
+def llm_process(userinput, botresponse):
+    threading.Thread(target=longMEM_thread, args=(userinput, botresponse)).start()
+    
+    if emotions == True: #set emotion
+        threading.Thread(target=set_emotion, args=(botresponse,)).start()
+
+    return botresponse
+
+#MISC
+def set_emotion(text_to_read):
+    from transformers import pipeline
+    
+    sizecheck = token_count(text_to_read)
+    if 'length' in sizecheck:
+        value_to_convert = sizecheck['length']
+    
+    if isinstance(value_to_convert, (int, float)):
+        if value_to_convert <= 511:
+            classifier = pipeline(task="text-classification", model="SamLowe/roberta-base-go_emotions", top_k=None)
+            model_outputs = classifier(text_to_read)
+            emotion = max(model_outputs[0], key=lambda x: x['score'])['label']
+            
+            print("Setting Emotion:", emotion)
+
+        #else:
+            #print("Not Setting Emotion")
+
+def read_character_content(charactercard):
+    global char_name, char_persona, personality, world_scenario, char_greeting, example_dialogue
+
+    try:
+        with open(charactercard, "r") as file:
+            data = json.load(file)
+
+            now = datetime.now()
+            date = now.strftime("%m/%d/%Y")
+            time = now.strftime("%H:%M:%S")
+            dtg = f"Current Date: {date}\nCurrent Time: {time}\n"
+            dtg2 = f"{date} at {time}\n"
+
+            placeholders = {
+                "{{user}}": user_name,
+                "{{char}}": char_name,
+                "{{time}}": dtg2
+            }
+
+            # Replace placeholders in strings within the dictionary
+            for key, value in data.items():
+                if isinstance(value, str):
+                    for placeholder, replacement in placeholders.items():
+                        data[key] = value.replace(placeholder, replacement)
+
+
+            char_name = data.get("char_name", char_name) or data.get("name", "")
+            char_persona = data.get("char_persona", char_persona) or data.get("description", "")
+            personality = data.get("personality", personality)
+            world_scenario = data.get("world_scenario", world_scenario) or data.get("scenario", "")
+            char_greeting = data.get("char_greeting", char_greeting) or data.get("first_mes", "")
+            example_dialogue = data.get("example_dialogue", example_dialogue) or data.get("mes_example", "")
+
+    except FileNotFoundError:
+        print(f"Character file '{charactercard}' not found.")
+    except Exception as e:
+        print(f"Error: {e}")
+
 def initial_msg(): # INITIAL LOAD
     global char_greeting
     train_text_classifier()
@@ -466,11 +497,28 @@ def initial_msg(): # INITIAL LOAD
     except Exception as e:
         print(f"Error: {e}")
 
+#MAIN
 if __name__ == "__main__":
-    flask_thread = threading.Thread(target=start_controls)
-    flask_thread.start()
+    # Set the STT message callback
+    set_message_callback(handle_stt_message)
+    set_wakewordtts_callback(wake_word_tts)
 
-    flask_thread = threading.Thread(target=start_stt)
-    flask_thread.start()
-    set_message_callback(receive_user_message_voice)
-    initial_msg()
+    # Start threads
+    stt_thread = threading.Thread(target=start_stt_thread, name="STTThread", daemon=True)
+    bt_controller_thread = threading.Thread(target=start_bt_controller_thread, name="BTControllerThread", daemon=True)
+
+    stt_thread.start()
+    bt_controller_thread.start()
+
+    try:
+        print("Main program running. Press Ctrl+C to stop.")
+        while True:
+            pass  # Keep the main program running
+    except KeyboardInterrupt:
+        print("\nStopping all threads...")
+        stop_event.set()  # Signal threads to stop
+
+        # Join threads
+        stt_thread.join()
+        bt_controller_thread.join()
+        print("All threads stopped gracefully.")
