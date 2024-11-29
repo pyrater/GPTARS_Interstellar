@@ -1,3 +1,4 @@
+#needed imports
 import os
 import sys
 import threading
@@ -10,24 +11,19 @@ import configparser
 import sounddevice as sd
 import numpy as np
 
-import discord
-import module_btcontroller
-import module_stt
-
-from flask import (
-    Flask,
-    jsonify,
-    request,
-    render_template,
-    Response,
-)
+#custom imports
+from module_engineTrainer import train_text_classifier
+from module_btcontroller import *
+from module_stt import *
+from module_memory import *
+from module_engine import *
+from module_tts import *
+from module_imagesummary import *
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Set the working directory to the base directory
 os.chdir(BASE_DIR)
 sys.path.insert(0, BASE_DIR)
-print(f"Script running from: {BASE_DIR}")
-
 sys.path.append(os.getcwd())
 
 config = configparser.ConfigParser()
@@ -81,17 +77,7 @@ is_talking_override = False
 is_talking = False
 global_timer_paused = False
 module_engine = None
-
 start_time = time.time() #calc time
-
-
-from module_engineTrainer import train_text_classifier
-train_text_classifier()
-
-from module_memory import *
-from module_engine import *
-from module_tts import *
-from module_imagesummary import *
 
 def play_audio_stream(tts_stream, samplerate=22050, channels=1):
     """
@@ -108,7 +94,7 @@ def play_audio_stream(tts_stream, samplerate=22050, channels=1):
                     print("Received empty chunk.")        
             
             print("Audio playback finished. Starting transcription...")
-            module_stt.transcribe_command()  # go back to listening for voice (non wake word)
+            transcribe_command()  # go back to listening for voice (non wake word)
     except Exception as e:
         print(f"Error during audio playback: {e}")
 
@@ -447,21 +433,14 @@ def process_completion(text):
 
 def initial_msg(): # INITIAL LOAD
     global char_greeting
+    train_text_classifier()
+    print(f"Script running from: {BASE_DIR}")
     print("Loading Operating System for TARS.........")
-    
+
     #Load Char card
     read_character_content(charactercard)
-    
-    #Load talking head image
+    #Try to set inital settings for TTS Cloning
     try:
-        talking("stop", start_time, talkinghead_base_url)
-        full_path = os.path.join(os.getcwd(), os.path.join("images", char_name, "default.png"))
-        #load_TalkingHead(full_path) #FORCES A RELOAD EACH TIME
-    except Exception as e:
-        print(f"Error: {e}")
-
-    try:
-        #Try to set settings for TTS Cloning
         url = f"{ttsurl}/set_tts_settings"
         headers = {
             'Accept': 'application/json',
@@ -471,7 +450,7 @@ def initial_msg(): # INITIAL LOAD
         payload = {
             "stream_chunk_size": 100,
             "temperature": 0.65,
-            "speed": 1,
+            "speed": 1.4,
             "length_penalty": 1,
             "repetition_penalty": 2,
             "top_p": 0.65,
@@ -488,9 +467,10 @@ def initial_msg(): # INITIAL LOAD
         print(f"Error: {e}")
 
 if __name__ == "__main__":
-    flask_thread = threading.Thread(target=module_btcontroller.start_controls)
+    flask_thread = threading.Thread(target=start_controls)
     flask_thread.start()
 
-    flask_thread = threading.Thread(target=module_stt.start_stt)
+    flask_thread = threading.Thread(target=start_stt)
     flask_thread.start()
-    module_stt.set_message_callback(receive_user_message_voice)
+    set_message_callback(receive_user_message_voice)
+    initial_msg()
