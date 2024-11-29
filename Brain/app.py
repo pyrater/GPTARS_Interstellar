@@ -273,7 +273,7 @@ def token_count(text):
     if llm_backend == "ooba":
         url = f"{base_url}/v1/internal/token-count"
 
-    if llm_backend == "tabby":
+    if llm_backend == "llama3.2":
         url = f"{base_url}/v1/token/encode"
 
     headers = {

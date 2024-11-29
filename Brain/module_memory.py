@@ -249,12 +249,14 @@ def read_character_content(charactercard):
         print(f"Error: {e}")
 
 def token_count(text):
-    
     if config['LLM']['backend'] == "ooba":
         url = f"{config['LLM']['base_url']}/v1/internal/token-count"
-
     elif config['LLM']['backend'] == "tabby":
-        url = f"{config['LLM']['base_url']}/v1/token/encode"  # Fixed typo here
+        url = f"{config['LLM']['base_url']}/v1/token/encode"
+    elif config['LLM']['backend'] == "llama":
+        url = f"{config['LLM']['base_url']}/api/generate"  # Adjust this endpoint based on Ollama's API documentation
+    else:
+        raise ValueError("Unsupported LLM backend")
 
     headers = {
         "Content-Type": "application/json",
@@ -271,7 +273,7 @@ def token_count(text):
     else:
         print("Error:", response.status_code, response.text)
         return None
-        
+    
 read_character_content(config['CHAR']['charactercard'])
 #LOAD
 memory_db_path = os.path.abspath(f"memory/{config['CHAR']['char_name']}.pickle.gz")
