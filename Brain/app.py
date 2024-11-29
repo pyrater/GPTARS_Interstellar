@@ -7,6 +7,8 @@ import requests
 import re
 from datetime import datetime
 import configparser
+import sounddevice as sd
+import numpy as np
 
 import discord
 import module_btcontroller
@@ -214,19 +216,42 @@ def upload():
         return 'No file part', 400
     
 
-def receive_user_message_voice(user_message):
+def play_audio_stream(tts_stream, samplerate=22050, channels=1):
     """
-    Process the recognized message from module_stt.
+    Play the audio stream through speakers using SoundDevice.
     """
     try:
+        with sd.OutputStream(samplerate=samplerate, channels=channels, dtype='int16') as stream:
+            for chunk in tts_stream:
+                if chunk:
+                    # Convert bytes to int16 using numpy
+                    audio_data = np.frombuffer(chunk, dtype='int16')
+                    stream.write(audio_data)
+                else:
+                    print("Received empty chunk.")        
+            
+            print("Audio playback finished. Starting transcription...")
+            module_stt.transcribe_command()  # go back to listening for voice (non wake word)
+    except Exception as e:
+        print(f"Error during audio playback: {e}")
+
+
+
+
+def receive_user_message_voice(user_message):
+    """
+    Process the recognized message from module_stt and stream audio response to speakers.
+    """
+    try:
+        # Parse the user message
         message_dict = json.loads(user_message)
-        if not message_dict.get('text'):  # This handles cases where text is "" or missing
+        if not message_dict.get('text'):  # Handles cases where text is "" or missing
             print("Nothing heard, returning to listening for wake word")
             return
         
         print(f"App received message: {message_dict}")
         
-        # Continue processing if "text" is not empty
+        # Check for shutdown command
         if "shutdown pc" in message_dict['text'].lower():
             print("Shutting down the PC...")
             os.system('shutdown /s /t 0')
@@ -237,9 +262,22 @@ def receive_user_message_voice(user_message):
         start_time = time.time()  # Record the start time for tracking
         reply = process_completion(message_dict['text'])  # Process the message
         latest_text_to_read = reply  # Store the reply for later use
+        
         print(f"Reply generated: {reply}")
+        
+        # Stream TTS audio to speakers
+        print("Fetching TTS audio...")
+        tts_stream = get_tts_stream(reply, ttsurl, ttsclone)  # Send reply text to TTS
+        
+        # Play the audio stream
+        print("Playing TTS audio...")
+        play_audio_stream(tts_stream)
+
+    except json.JSONDecodeError:
+        print("Invalid JSON format. Could not process user message.")
     except Exception as e:
         print(f"Error processing message: {e}")
+
 
   
 def start_flask():
