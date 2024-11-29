@@ -1,0 +1,15 @@
+requests  # HTTP library for making API calls.
+numpy  # Fundamental package for numerical computations.
+pandas  # Data manipulation and analysis library.
+scikit-learn  # Tools for predictive data analysis.
+joblib  # Efficient serialization of Python objects.
+sounddevice  # Audio I/O for capturing and playing sound.
+pyttsx3  # Text-to-speech library for Python.
+vosk  # Offline speech recognition library.
+pocketsphinx  # CMU's lightweight speech recognition library.
+sentence-transformers  # Library for sentence embeddings and semantic search.
+evdev  # Handle input devices such as keyboards, mice (Linux only).
+selenium  # Web automation library for controlling browsers.
+chromedriver_installer  # Automatically downloads and installs ChromeDriver.
+discord.py  # Discord API wrapper for bot creation.
+hyperdb-python  # High-performance database library.

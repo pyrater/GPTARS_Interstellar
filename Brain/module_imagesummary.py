@@ -1,5 +1,3 @@
-from flask import request
-from werkzeug.utils import secure_filename
 from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration
 import base64
@@ -24,23 +22,6 @@ def get_image_caption_from_base64(base64_str):
     caption = processor.decode(outputs[0], skip_special_tokens=True)
 
     return caption
-
-def upload_file():
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            return 'No file part'
-        file = request.files['file']
-        if file.filename == '':
-            return 'No selected file'
-        if file and allowed_file(file.filename):
-            # Convert the uploaded file to a base64 string
-            in_memory_file = BytesIO()
-            file.save(in_memory_file)
-            base64_str = base64.b64encode(in_memory_file.getvalue()).decode('utf-8')
-            caption = get_image_caption_from_base64(base64_str)
-            #print(f'Caption: {caption}')
-            return caption
-    return
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}

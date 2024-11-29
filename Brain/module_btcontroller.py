@@ -1,20 +1,21 @@
-
 import evdev
 from datetime import datetime
-#MAIN FUNCTION
+import time
+
 # Set the path to your gamepad
 gamepad_path = '/dev/input/event6'
 
 def start_controls():
-# Main loop to read events
-    try:
-        # Connect to the gamepad
-        gamepad = evdev.InputDevice(gamepad_path)
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: {gamepad.name} connected.")
-    except FileNotFoundError:
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Gamepad not found at {gamepad_path}")
-        return
-        exit()
+    # Retry loop for detecting the gamepad
+    gamepad = None
+    while gamepad is None:
+        try:
+            # Try to connect to the gamepad
+            gamepad = evdev.InputDevice(gamepad_path)
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: {gamepad.name} connected.")
+        except FileNotFoundError:
+            #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Gamepad not found at {gamepad_path}. Retrying in 5 seconds...")
+            time.sleep(5)  # Wait before retrying
 
     # Define mappings for button events
     button_map = {
@@ -44,7 +45,8 @@ def start_controls():
         evdev.ecodes.ABS_HAT0Y: "D-Pad Y",
         9: "Trigger Axis",  # Example label for Unknown Axis 9
     }
-    #print("Listening for events... (Press Ctrl+C to exit)")
+
+    print("Listening for events... (Press Ctrl+C to exit)")
     try:
         for event in gamepad.read_loop():
             if event.type == evdev.ecodes.EV_KEY:  # Button press/release
