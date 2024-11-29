@@ -34,7 +34,6 @@ sys.path.append(os.getcwd())
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-
 # TTS Section
 ttsurl = config['TTS']['ttsurl']
 charvoice = config.getboolean('TTS', 'charvoice')
@@ -307,9 +306,9 @@ def chat_completions_with_character(messages, mode, character):
     return response.json()
 
 def process_completion(text):
-    with executor as pool:
-        future = pool.submit(get_completion, text, "True")
-        botres = future.result()
+    # Use the executor directly without 'with' statement
+    future = executor.submit(get_completion, text, "True")
+    botres = future.result()
     reply = llm_process(text, botres)
     return reply
 
@@ -528,10 +527,13 @@ if __name__ == "__main__":
         while True:
             pass  # Keep the main program running
     except KeyboardInterrupt:
-        print("\nStopping all threads...")
+        print("\nStopping all threads and shutting down executor...")
         stop_event.set()  # Signal threads to stop
+
+        # Shut down the executor
+        executor.shutdown(wait=True)
 
         # Join threads
         stt_thread.join()
         bt_controller_thread.join()
-        print("All threads stopped gracefully.")
+        print("All threads and executor stopped gracefully.")
