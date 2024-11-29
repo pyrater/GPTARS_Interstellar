@@ -14,6 +14,7 @@ from datetime import datetime
 import configparser
 import sounddevice as sd
 import numpy as np
+import concurrent.futures
 
 #custom imports
 from module_engineTrainer import train_text_classifier
@@ -81,7 +82,7 @@ global_timer_paused = False
 module_engine = None
 start_time = time.time() #calc time
 stop_event = threading.Event()
-
+executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
 
 #TTS
 def play_audio_stream(tts_stream, samplerate=22050, channels=1):
@@ -305,9 +306,9 @@ def chat_completions_with_character(messages, mode, character):
     return response.json()
 
 def process_completion(text):
-    global start_time
-    start_time = time.time() #calc time
-    botres = get_completion(text, "True") 
+    with executor as pool:
+        future = pool.submit(get_completion, text, "True")
+        botres = future.result()
     reply = llm_process(text, botres)
     return reply
 

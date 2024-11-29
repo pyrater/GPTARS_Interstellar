@@ -3,12 +3,14 @@ from transformers import BlipProcessor, BlipForConditionalGeneration
 import subprocess
 import os
 import traceback
+import time
 
 def describe_camera_view(save_path: str = "captured_image.jpg") -> str:
     """
     Capture an image using libcamera-still and generate a descriptive caption using BLIP.
     """
     try:
+        start_time = time.time()
         print("Initializing BLIP model and processor...")
         # Initialize BLIP model and processor
         processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
@@ -37,7 +39,9 @@ def describe_camera_view(save_path: str = "captured_image.jpg") -> str:
         caption = processor.decode(outputs[0], skip_special_tokens=True)
 
         print("Caption generated:", caption)
-        # Return the caption
+        end_time = time.time()
+        total_time = end_time - start_time
+        print(f"Total time taken: {total_time:.2f} seconds")
         return caption
     except subprocess.CalledProcessError as e:
         return f"Error: libcamera-still command failed with error {e}"
