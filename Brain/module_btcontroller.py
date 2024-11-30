@@ -2,8 +2,45 @@ import evdev
 from datetime import datetime
 import time
 
-# Set the path to your gamepad
-gamepad_path = '/dev/input/event6'
+from evdev import InputDevice, list_devices, ecodes, categorize
+global gamepad_path
+
+def find_controller(controller_name):
+    global gamepad_path
+    """
+    Search for a controller by its name.
+    """
+    devices = [InputDevice(path) for path in list_devices()]
+    for device in devices:
+        if controller_name.lower() in device.name.lower():
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Controller found: {device.name} at {device.path}")
+            gamepad_path = device.path
+            return device
+    print(f"No controller found with name: {controller_name}")
+    return None
+
+def monitor_controller_events(device):
+    """
+    Monitor and print events from the selected controller.
+    """
+    print(f"Monitoring events for {device.name} at {device.path}")
+    try:
+        for event in device.read_loop():
+            if event.type == ecodes.EV_KEY:
+                print(categorize(event))
+            elif event.type == ecodes.EV_ABS:
+                abs_event = categorize(event)
+                print(f"Absolute event: {abs_event}")
+    except KeyboardInterrupt:
+        print("\nExiting event monitoring.")
+
+
+controller_name = "8BitDo"  # Replace with part of your controller's name
+device = find_controller(controller_name)
+
+#if device:
+    #monitor_controller_events(device)
+
 
 def start_controls():
     # Retry loop for detecting the gamepad
@@ -46,18 +83,18 @@ def start_controls():
         9: "Trigger Axis",  # Example label for Unknown Axis 9
     }
 
-    print("Listening for events... (Press Ctrl+C to exit)")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Controls Listening...")
     try:
         for event in gamepad.read_loop():
             if event.type == evdev.ecodes.EV_KEY:  # Button press/release
                 button_name = button_map.get(event.code, f"Unknown Button {event.code}")
                 if event.value == 1:  # Button pressed
-                    print(f"Button Pressed: {button_name}")
+                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] MOVE: Button Pressed: {button_name}")
                 elif event.value == 0:  # Button released
-                    print(f"Button Released: {button_name}")
+                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] MOVE: Button Released: {button_name}")
             elif event.type == evdev.ecodes.EV_ABS:  # Analog stick or D-pad movement
                 axis_name = analog_map.get(event.code, f"Unknown Axis {event.code}")
-                print(f"{axis_name} moved to {event.value}")
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] MOVE: {axis_name} moved to {event.value}")
             elif event.type == evdev.ecodes.EV_SYN:  # Synchronization event (optional)
                 pass  # Ignore synchronization events
     except KeyboardInterrupt:

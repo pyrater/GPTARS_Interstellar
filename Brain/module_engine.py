@@ -2,6 +2,7 @@ import requests
 import joblib 
 from module_websearch import *
 from module_vision import *
+from datetime import datetime
 
 #module_engine
 model_filename = 'module_engine/pickles/naive_bayes_model.pkl'
@@ -37,18 +38,19 @@ def predict_module(user_input):
     if max_probability < 0.75:
         percentageleft = 100 - percentage
         formatted_percentageleft = f"{percentageleft:.0f}"  # Format to no decimal places
-        print(f"Module     : {predicted_class} @ {formatted_percentage}%")
+
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TOOL: {predicted_class} @ {formatted_percentage}%")
         return None, max_probability
     else:
-        print(f"Module     : {predicted_class} @ {formatted_percentage}%")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TOOL: {predicted_class} @ {formatted_percentage}%")
         return predicted_class, max_probability
 
-def check_for_module(user_input, char_name, talkinghead_base_url):
+def check_for_module(user_input):
     global module_engine
     predicted_class, probability = predict_module(user_input)
 
     if "search google" in user_input:
-        print("Override Search")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TOOL: Forced Search")
         predicted_class = "Search"
 
     #Guesses

@@ -14,6 +14,7 @@ from datetime import datetime
 import configparser
 import sounddevice as sd
 import numpy as np
+import concurrent.futures
 
 #custom imports
 from module_engineTrainer import train_text_classifier
@@ -33,7 +34,6 @@ sys.path.append(os.getcwd())
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-
 # TTS Section
 ttsurl = config['TTS']['ttsurl']
 charvoice = config.getboolean('TTS', 'charvoice')
@@ -41,11 +41,10 @@ ttsoption = config['TTS']['ttsoption']
 ttsclone = config['TTS']['ttsclone']
 voiceonly = config.getboolean('TTS', 'voiceonly')
 
-# TalkingHead Section
-talkinghead_base_url = config['TALKINGHEAD']['talkinghead_base_url']
-emotions = config.getboolean('TALKINGHEAD', 'emotions')
-emotion_model = config['TALKINGHEAD']['emotion_model']
-storepath = os.path.join(os.getcwd(), config['TALKINGHEAD']['storepath'])
+# EMOTION Section
+emotions = config.getboolean('EMOTION', 'enabled')
+emotion_model = config['EMOTION']['emotion_model']
+storepath = os.path.join(os.getcwd(), config['EMOTION']['storepath'])
 
 # LLM Section
 llm_backend = config['LLM']['backend']
@@ -64,9 +63,6 @@ charactercard = config['CHAR']['charactercard']
 user_name = config['CHAR']['user_name']
 user_details = config['CHAR']['user_details']
 
-# STT Section
-uservoice = config.getboolean('STT', 'uservoice')
-
 # Discord Section
 TOKEN = config['DISCORD']['TOKEN']
 channel_id = config['DISCORD']['channel_id']
@@ -82,7 +78,7 @@ global_timer_paused = False
 module_engine = None
 start_time = time.time() #calc time
 stop_event = threading.Event()
-
+executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
 
 #TTS
 def play_audio_stream(tts_stream, samplerate=22050, channels=1):
@@ -119,7 +115,7 @@ def build_prompt(user_prompt):
         voiceonly = False
 
  
-    module_engine = check_for_module(user_prompt, char_name, talkinghead_base_url)
+    module_engine = check_for_module(user_prompt)
     
     if module_engine != "No_Tool":
         #if "*User is leaving the chat politely*" in module_engine:
@@ -306,9 +302,9 @@ def chat_completions_with_character(messages, mode, character):
     return response.json()
 
 def process_completion(text):
-    global start_time
-    start_time = time.time() #calc time
-    botres = get_completion(text, "True") 
+    # Use the executor directly without 'with' statement
+    future = executor.submit(get_completion, text, "True")
+    botres = future.result()
     reply = llm_process(text, botres)
     return reply
 
@@ -340,7 +336,7 @@ def handle_stt_message(message):
         # Parse the user message
         message_dict = json.loads(message)
         if not message_dict.get('text'):  # Handles cases where text is "" or missing
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TARS: Going Idle...")
+            #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TARS: Going Idle...")
             return
         
         #Print the response
@@ -468,7 +464,7 @@ def read_character_content(charactercard):
 def initial_msg():
     global char_greeting
 
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DEBUG: initial_msg() called")
+    #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DEBUG: initial_msg() called")
     
 
     read_character_content(charactercard)
@@ -477,7 +473,7 @@ def initial_msg():
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Script running from: {BASE_DIR}")
 
     #Load Char card
-    
+    measure_background_noise()
 
     #Try to set inital settings for TTS Cloning
     try:
@@ -489,12 +485,12 @@ def initial_msg():
 
         payload = {
             "stream_chunk_size": 100,
-            "temperature": 0.65,
-            "speed": 1.4,
-            "length_penalty": 1,
-            "repetition_penalty": 2,
-            "top_p": 0.65,
-            "top_k": 50,
+            "temperature": 0.7,
+            "speed": 1.1,
+            "length_penalty": 1.0,
+            "repetition_penalty": 1.2,
+            "top_p": 0.9,
+            "top_k": 40,
             "enable_text_splitting": True
         }
         response = requests.post(url, headers=headers, json=payload)
@@ -523,14 +519,17 @@ if __name__ == "__main__":
     bt_controller_thread.start()
 
     try:
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Main program running. Press Ctrl+C to stop.")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Main program running. Press Ctrl+C to stop.")
         while True:
             pass  # Keep the main program running
     except KeyboardInterrupt:
-        print("\nStopping all threads...")
+        print("\nStopping all threads and shutting down executor...")
         stop_event.set()  # Signal threads to stop
+
+        # Shut down the executor
+        executor.shutdown(wait=True)
 
         # Join threads
         stt_thread.join()
         bt_controller_thread.join()
-        print("All threads stopped gracefully.")
+        print("All threads and executor stopped gracefully.")
