@@ -41,11 +41,10 @@ ttsoption = config['TTS']['ttsoption']
 ttsclone = config['TTS']['ttsclone']
 voiceonly = config.getboolean('TTS', 'voiceonly')
 
-# TalkingHead Section
-talkinghead_base_url = config['TALKINGHEAD']['talkinghead_base_url']
-emotions = config.getboolean('TALKINGHEAD', 'emotions')
-emotion_model = config['TALKINGHEAD']['emotion_model']
-storepath = os.path.join(os.getcwd(), config['TALKINGHEAD']['storepath'])
+# EMOTION Section
+emotions = config.getboolean('EMOTION', 'enabled')
+emotion_model = config['EMOTION']['emotion_model']
+storepath = os.path.join(os.getcwd(), config['EMOTION']['storepath'])
 
 # LLM Section
 llm_backend = config['LLM']['backend']
@@ -116,7 +115,7 @@ def build_prompt(user_prompt):
         voiceonly = False
 
  
-    module_engine = check_for_module(user_prompt, char_name, talkinghead_base_url)
+    module_engine = check_for_module(user_prompt)
     
     if module_engine != "No_Tool":
         #if "*User is leaving the chat politely*" in module_engine:

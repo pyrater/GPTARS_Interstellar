@@ -86,11 +86,13 @@ def transcribe_command():
     Transcribes a command using either the local Vosk model or the server.
     """
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] STAT: Listening...")
-
-    if use_server_stt:
-        return transcribe_with_server()
-    else:
-        return transcribe_with_vosk()
+    try:
+        if use_server_stt:
+            return transcribe_with_server()
+        else:
+            return transcribe_with_vosk()
+    except Exception as e:
+        print(f"[ERROR] Transcription failed: {e}")
 
 
 def transcribe_with_vosk():
@@ -103,16 +105,23 @@ def transcribe_with_vosk():
         print("KaldiRecognizer initialized successfully.")
 
         with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="int16") as stream:
-            while True:
+            max_duration_frames = 50  # Limit maximum recording duration (~12.5 seconds)
+            total_frames = 0
+
+            while total_frames < max_duration_frames:  # Prevent infinite loops
                 data, _ = stream.read(4000)
                 if recognizer.AcceptWaveform(data.tobytes()):
                     result = recognizer.Result()
-                    #print(f"Recognized: {result}")
+                    print(f"[DEBUG] Recognized: {result}")
                     if message_callback:
                         message_callback(result)
                     return result
+                total_frames += 1
+            print("[ERROR] No valid transcription within duration limit.")
+            return None
+
     except Exception as e:
-        print(f"Error during local transcription: {e}")
+        print(f"[ERROR] Error during local transcription: {e}")
     finally:
         if recognizer:
             del recognizer
@@ -159,48 +168,39 @@ def transcribe_with_server():
         max_silent_frames = 2  # ~1.25 seconds of silence
         detected_speech = False
         noise_threshold = silence_threshold  # Minimum RMS to ignore random noise
-        min_speech_duration = 4  # Require at least 5 consecutive frames of speech
-        
-        #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Starting audio recording...")
+        min_speech_duration = 4  # Require at least 4 consecutive frames of speech
+
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Starting audio recording...")
         with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="int16") as stream:
             with wave.open(audio_buffer, "wb") as wf:
                 wf.setnchannels(1)
                 wf.setsampwidth(2)
                 wf.setframerate(SAMPLE_RATE)
-                #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Audio stream opened. Recording...")
 
                 speech_frames = 0  # Track consecutive speech frames
+                max_duration_frames = 50  # Limit maximum recording duration (~12.5 seconds)
+                total_frames = 0
 
-                while True:
+                while total_frames < max_duration_frames:  # Prevent infinite loops
                     data, _ = stream.read(4000)
                     wf.writeframes(data.tobytes())
 
                     # Calculate RMS (Root Mean Square) energy of the audio data
                     rms = np.sqrt(np.mean(np.square(data)))
-                    #print(f"f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  RMS energy: {rms:.2f}")  # Log RMS energy values
 
                     if rms > silence_threshold:  # Voice detected
                         if not detected_speech:
-                            #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Speech detected.")
-                            pass
+                            print("[DEBUG] Speech detected.")
                         detected_speech = True
                         speech_frames += 1
-
-                        # Reset silent frames only if sustained speech is detected
-                        if speech_frames > min_speech_duration:
-                            silent_frames = 0  # Reset silence counter if sustained speech is detected
-                            #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Sustained speech detected. Silent frame counter reset.")
-                    elif rms > noise_threshold:  # Low-level noise detected
-                        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Low-level noise detected. Ignoring.")
-                        continue
+                        silent_frames = 0  # Reset silent frames
                     elif detected_speech:  # Silence detected after speech
                         silent_frames += 1
-                        #print(f"f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Silent frames count: {silent_frames}")
-
-                        # Stop recording if silence persists
                         if silent_frames > max_silent_frames:
-                            #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Silence detected.")
+                            print("[DEBUG] Silence detected. Stopping recording.")
                             break
+
+                    total_frames += 1
 
         # Ensure the audio buffer is not empty
         audio_buffer.seek(0)
@@ -209,8 +209,7 @@ def transcribe_with_server():
             print("[ERROR] Audio buffer is empty. No audio recorded.")
             return None
 
-        # Send the audio buffer to the server
-        #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Sending {buffer_size} bytes of audio")
+        print(f"[DEBUG] Sending {buffer_size} bytes of audio to server...")
         files = {"audio": ("audio.wav", audio_buffer, "audio/wav")}
 
         response = requests.post(server_url, files=files, timeout=10)
@@ -226,23 +225,30 @@ def transcribe_with_server():
                     # Format as Vosk-style JSON
                     formatted_result = {
                         "text": raw_text,
-                        "result": [{"conf": 1.0, "end": seg.get("end", 0), "start": seg.get("start", 0), "word": seg.get("text", "")} for seg in transcription]
+                        "result": [
+                            {
+                                "conf": 1.0,
+                                "end": seg.get("end", 0),
+                                "start": seg.get("start", 0),
+                                "word": seg.get("text", ""),
+                            }
+                            for seg in transcription
+                        ],
                     }
 
-                    #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  USER: {formatted_result['text']}")
-                    
+                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] USER: {formatted_result['text']}")
+
                     # If a callback is set, send the formatted JSON
                     if message_callback:
                         message_callback(json.dumps(formatted_result))  # Send as a JSON string
-                    
+
                     return formatted_result
                 else:
-                    #print("[ERROR] Unexpected transcription format or empty transcription.")
+                    print("[ERROR] Unexpected transcription format or empty transcription.")
                     return None
             except Exception as e:
                 print(f"[ERROR] Exception while processing transcription: {e}")
                 return None
- 
 
     except requests.exceptions.Timeout:
         print("[ERROR] Server request timed out.")
@@ -251,8 +257,9 @@ def transcribe_with_server():
     except Exception as e:
         print(f"[ERROR] Unexpected error during server transcription: {e}")
     finally:
-        #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Exiting transcribe_with_server.")
-        pass
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Exiting transcribe_with_server.")
+
+
 
 
 def start_stt(stop_event: Event = None):

@@ -45,7 +45,7 @@ def predict_module(user_input):
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TOOL: {predicted_class} @ {formatted_percentage}%")
         return predicted_class, max_probability
 
-def check_for_module(user_input, char_name, talkinghead_base_url):
+def check_for_module(user_input):
     global module_engine
     predicted_class, probability = predict_module(user_input)
 
