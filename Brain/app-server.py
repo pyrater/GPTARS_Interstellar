@@ -6,6 +6,7 @@ import traceback
 from faster_whisper import WhisperModel
 from flask_cors import CORS
 from io import BytesIO
+from datetime import datetime
 
 # Initialize Flask app and enable CORS
 app = Flask(__name__)
@@ -27,8 +28,8 @@ blip_processor, blip_model = initialize_blip_model()
 # Initialize Whisper model for audio transcription
 def initialize_whisper_model(
     model_size="large-v3", 
-    device="cpu",  # Set to "cuda" if GPU is available
-    compute_type="int8_float16"  # Use "float16" or "int8" for optimization
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+    compute_type="int8_float8"  # Use "float16" or "int8" for optimization
 ):
     """Load Whisper model for audio transcription using faster-whisper."""
     try:
@@ -42,7 +43,7 @@ def initialize_whisper_model(
         raise e
 
 whisper_model = initialize_whisper_model(
-    model_size="large-v3", 
+    model_size="tiny", 
     device="cuda" if torch.cuda.is_available() else "cpu", 
     compute_type="int8_float16" if torch.cuda.is_available() else "int8"
 )
@@ -61,8 +62,6 @@ def caption_image():
         # Read the uploaded image into a BytesIO object
         image_file = request.files['image']
         image_bytes = BytesIO(image_file.read())
-
-
         # Generate caption
         inputs = blip_processor(image, return_tensors="pt").to(device)
         outputs = blip_model.generate(**inputs, max_new_tokens=50, num_beams=5)
@@ -80,6 +79,7 @@ def save_audio():
     """
     Endpoint to transcribe uploaded audio using Whisper.
     """
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  hit")
     try:
         # Validate the request
         if 'audio' not in request.files:
