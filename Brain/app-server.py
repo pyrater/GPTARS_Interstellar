@@ -52,7 +52,7 @@ blip_processor, blip_model = initialize_blip_model()
 """
 
 def initialize_whisper_model(
-    model_size="large-v3", 
+    model_size="Small", 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     compute_type="int8_float8"  # Use "float16" or "int8" for optimization
 ):
@@ -91,7 +91,7 @@ def caption_image():
         
         # Generate caption
         inputs = blip_processor(image, return_tensors="pt").to(device)
-        outputs = blip_model.generate(**inputs, max_new_tokens=100, num_beams=3)
+        outputs = blip_model.generate(**inputs, max_new_tokens=150, num_beams=5)
         caption = blip_processor.decode(outputs[0], skip_special_tokens=True)
         
         return jsonify({"caption": caption})
@@ -100,13 +100,12 @@ def caption_image():
         return jsonify({"error": str(e)}), 500
 
 
-
 @app.route('/save_audio', methods=['POST'])
 def save_audio():
     """
     Endpoint to transcribe uploaded audio using Whisper.
     """
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  hit")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Accessed")
     try:
         # Validate the request
         if 'audio' not in request.files:
