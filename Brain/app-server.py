@@ -26,6 +26,31 @@ def initialize_blip_model():
 blip_processor, blip_model = initialize_blip_model()
 
 # Initialize Whisper model for audio transcription
+"""
+# Whisper Model Options
+# OpenAI Whisper provides a range of models with varying size, speed, and accuracy:
+
+1. Tiny
+   - Size: ~39 MB
+   - Use Case: Basic transcription tasks prioritizing speed over accuracy.
+
+2. Base
+   - Size: ~74 MB
+   - Use Case: Quick transcription in moderately constrained environments.
+
+3. Small
+   - Size: ~244 MB
+   - Use Case: Real-time transcription where quality matters more.
+
+4. Medium
+   - Size: ~769 MB
+   - Use Case: Transcription tasks with high accuracy requirements.
+
+5. Large
+   - Size: ~1.55 GB
+   - Use Case: Critical transcription tasks where accuracy is paramount.
+"""
+
 def initialize_whisper_model(
     model_size="large-v3", 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
@@ -58,21 +83,22 @@ def caption_image():
         # Validate the request
         if 'image' not in request.files:
             return jsonify({"error": "No image file provided"}), 400
-
+        
         # Read the uploaded image into a BytesIO object
         image_file = request.files['image']
         image_bytes = BytesIO(image_file.read())
-
+        image = Image.open(image_bytes)
+        
         # Generate caption
-        inputs = blip_processor(image_bytes, return_tensors="pt").to(device)
-        outputs = blip_model.generate(**inputs, max_new_tokens=50, num_beams=5)
+        inputs = blip_processor(image, return_tensors="pt").to(device)
+        outputs = blip_model.generate(**inputs, max_new_tokens=100, num_beams=3)
         caption = blip_processor.decode(outputs[0], skip_special_tokens=True)
-
+        
         return jsonify({"caption": caption})
-
     except Exception as e:
         print("Error occurred during caption generation:", traceback.format_exc())
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/save_audio', methods=['POST'])

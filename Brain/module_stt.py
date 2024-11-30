@@ -11,6 +11,7 @@ import wave
 import configparser
 import sys
 import numpy as np
+import json
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -210,6 +211,7 @@ def transcribe_with_server():
         # Send the audio buffer to the server
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Sending {buffer_size} bytes of audio")
         files = {"audio": ("audio.wav", audio_buffer, "audio/wav")}
+
         response = requests.post(server_url, files=files, timeout=10)
 
         # Handle server response
@@ -219,20 +221,27 @@ def transcribe_with_server():
                 transcription = response.json().get("transcription", [])
                 if isinstance(transcription, list) and transcription:
                     raw_text = transcription[0].get("text", "").strip()
-                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  USER: {raw_text}")
+                    
+                    # Format as Vosk-style JSON
+                    formatted_result = {
+                        "text": raw_text,
+                        "result": [{"conf": 1.0, "end": seg.get("end", 0), "start": seg.get("start", 0), "word": seg.get("text", "")} for seg in transcription]
+                    }
+
+                    #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  USER: {formatted_result['text']}")
+                    
+                    # If a callback is set, send the formatted JSON
                     if message_callback:
-                        message_callback(raw_text)
-                    return raw_text
+                        message_callback(json.dumps(formatted_result))  # Send as a JSON string
+                    
+                    return formatted_result
                 else:
-                    print("[ERROR] Unexpected transcription format or empty transcription.")
+                    #print("[ERROR] Unexpected transcription format or empty transcription.")
                     return None
-            except (ValueError, KeyError, TypeError) as e:
-                print(f"[ERROR] Failed to parse JSON response: {e}")
-                print(f"[ERROR] Server response content: {response.text}")
+            except Exception as e:
+                print(f"[ERROR] Exception while processing transcription: {e}")
                 return None
-        else:
-            print(f"[ERROR] Server error: {response.status_code} - {response.text}")
-            return None
+ 
 
     except requests.exceptions.Timeout:
         print("[ERROR] Server request timed out.")
@@ -241,7 +250,8 @@ def transcribe_with_server():
     except Exception as e:
         print(f"[ERROR] Unexpected error during server transcription: {e}")
     finally:
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Exiting transcribe_with_server.")
+        #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Exiting transcribe_with_server.")
+        pass
 
 
 def start_stt(stop_event: Event = None):
