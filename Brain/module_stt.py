@@ -149,7 +149,7 @@ def measure_background_noise():
             background_rms_values.append(rms)
 
     background_noise = np.mean(background_rms_values)
-    silence_threshold = background_noise * 1.2 * silence_margin  # Add margin to background noise
+    silence_threshold = background_noise * silence_margin  # Add margin to background noise
     if silence_threshold < 10:
         silence_threshold = 10
     else:
