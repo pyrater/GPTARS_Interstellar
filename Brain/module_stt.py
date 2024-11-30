@@ -132,7 +132,10 @@ def measure_background_noise():
     with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="int16") as stream:
         for _ in range(20):  # Collect ~2 seconds of audio (20 frames * 4000 samples)
             data, _ = stream.read(4000)
-            rms = np.sqrt(np.mean(np.square(data)))
+            if data.size == 0 or not np.isfinite(data).all():
+                rms = 0  # Assign zero RMS for invalid or empty data
+            else:
+                rms = np.sqrt(np.mean(np.square(data)))
             background_rms_values.append(rms)
 
     background_noise = np.mean(background_rms_values)
@@ -152,12 +155,12 @@ def transcribe_with_server():
     try:
         audio_buffer = BytesIO()
         silent_frames = 0
-        max_silent_frames = 5  # ~1.25 seconds of silence
+        max_silent_frames = 2  # ~1.25 seconds of silence
         detected_speech = False
         noise_threshold = silence_threshold  # Minimum RMS to ignore random noise
-        min_speech_duration = 5  # Require at least 5 consecutive frames of speech
+        min_speech_duration = 4  # Require at least 5 consecutive frames of speech
         
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Starting audio recording...")
+        #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Starting audio recording...")
         with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="int16") as stream:
             with wave.open(audio_buffer, "wb") as wf:
                 wf.setnchannels(1)
@@ -205,22 +208,27 @@ def transcribe_with_server():
             return None
 
         # Send the audio buffer to the server
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Sending {buffer_size} bytes of audio to server...")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Sending {buffer_size} bytes of audio")
         files = {"audio": ("audio.wav", audio_buffer, "audio/wav")}
         response = requests.post(server_url, files=files, timeout=10)
 
         # Handle server response
         if response.status_code == 200:
-            transcription = response.json().get("transcription", [])
-            if isinstance(transcription, list) and transcription:
-                # Return the raw text of the first segment or customize as needed
-                raw_text = transcription[0]["text"]
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Raw transcription text: {raw_text}")
-                if message_callback:
-                    message_callback(raw_text)
-                return raw_text
-            else:
-                print("[ERROR] Unexpected transcription format or empty transcription.")
+            try:
+                # Parse the JSON response
+                transcription = response.json().get("transcription", [])
+                if isinstance(transcription, list) and transcription:
+                    raw_text = transcription[0].get("text", "").strip()
+                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  USER: {raw_text}")
+                    if message_callback:
+                        message_callback(raw_text)
+                    return raw_text
+                else:
+                    print("[ERROR] Unexpected transcription format or empty transcription.")
+                    return None
+            except (ValueError, KeyError, TypeError) as e:
+                print(f"[ERROR] Failed to parse JSON response: {e}")
+                print(f"[ERROR] Server response content: {response.text}")
                 return None
         else:
             print(f"[ERROR] Server error: {response.status_code} - {response.text}")

@@ -62,8 +62,9 @@ def caption_image():
         # Read the uploaded image into a BytesIO object
         image_file = request.files['image']
         image_bytes = BytesIO(image_file.read())
+
         # Generate caption
-        inputs = blip_processor(image, return_tensors="pt").to(device)
+        inputs = blip_processor(image_bytes, return_tensors="pt").to(device)
         outputs = blip_model.generate(**inputs, max_new_tokens=50, num_beams=5)
         caption = blip_processor.decode(outputs[0], skip_special_tokens=True)
 
