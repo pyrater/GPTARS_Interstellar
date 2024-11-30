@@ -485,10 +485,10 @@ def initial_msg():
 
         payload = {
             "stream_chunk_size": 100,
-            "temperature": 0.65,
-            "speed": 1.4,
-            "length_penalty": 1,
-            "repetition_penalty": 2,
+            "temperature": 0.55,
+            "speed": 1.5,
+            "length_penalty": 1.2,
+            "repetition_penalty": 1.5,
             "top_p": 0.65,
             "top_k": 50,
             "enable_text_splitting": True
