@@ -16,7 +16,6 @@ config.read('config.ini')
 server_hosted = config['VISION']['server_hosted']
 vision_base_url = config['VISION']['base_url']
 
-print(server_hosted)
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

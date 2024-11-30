@@ -64,9 +64,6 @@ charactercard = config['CHAR']['charactercard']
 user_name = config['CHAR']['user_name']
 user_details = config['CHAR']['user_details']
 
-# STT Section
-uservoice = config.getboolean('STT', 'uservoice')
-
 # Discord Section
 TOKEN = config['DISCORD']['TOKEN']
 channel_id = config['DISCORD']['channel_id']
@@ -340,7 +337,7 @@ def handle_stt_message(message):
         # Parse the user message
         message_dict = json.loads(message)
         if not message_dict.get('text'):  # Handles cases where text is "" or missing
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TARS: Going Idle...")
+            #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TARS: Going Idle...")
             return
         
         #Print the response
@@ -468,7 +465,7 @@ def read_character_content(charactercard):
 def initial_msg():
     global char_greeting
 
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DEBUG: initial_msg() called")
+    #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DEBUG: initial_msg() called")
     
 
     read_character_content(charactercard)
@@ -477,7 +474,7 @@ def initial_msg():
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Script running from: {BASE_DIR}")
 
     #Load Char card
-    
+    measure_background_noise()
 
     #Try to set inital settings for TTS Cloning
     try:
