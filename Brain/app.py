@@ -14,6 +14,7 @@ from datetime import datetime
 import configparser
 import sounddevice as sd
 import numpy as np
+import concurrent.futures
 
 #custom imports
 from module_engineTrainer import train_text_classifier
@@ -32,7 +33,6 @@ sys.path.append(os.getcwd())
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-
 
 # TTS Section
 ttsurl = config['TTS']['ttsurl']
@@ -82,7 +82,7 @@ global_timer_paused = False
 module_engine = None
 start_time = time.time() #calc time
 stop_event = threading.Event()
-
+executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
 
 #TTS
 def play_audio_stream(tts_stream, samplerate=22050, channels=1):
@@ -306,9 +306,9 @@ def chat_completions_with_character(messages, mode, character):
     return response.json()
 
 def process_completion(text):
-    global start_time
-    start_time = time.time() #calc time
-    botres = get_completion(text, "True") 
+    # Use the executor directly without 'with' statement
+    future = executor.submit(get_completion, text, "True")
+    botres = future.result()
     reply = llm_process(text, botres)
     return reply
 
@@ -527,10 +527,13 @@ if __name__ == "__main__":
         while True:
             pass  # Keep the main program running
     except KeyboardInterrupt:
-        print("\nStopping all threads...")
+        print("\nStopping all threads and shutting down executor...")
         stop_event.set()  # Signal threads to stop
+
+        # Shut down the executor
+        executor.shutdown(wait=True)
 
         # Join threads
         stt_thread.join()
         bt_controller_thread.join()
-        print("All threads stopped gracefully.")
+        print("All threads and executor stopped gracefully.")
