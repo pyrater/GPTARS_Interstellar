@@ -46,7 +46,7 @@ def start_controls():
         9: "Trigger Axis",  # Example label for Unknown Axis 9
     }
 
-    print("Listening for events... (Press Ctrl+C to exit)")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Controls Listening...")
     try:
         for event in gamepad.read_loop():
             if event.type == evdev.ecodes.EV_KEY:  # Button press/release

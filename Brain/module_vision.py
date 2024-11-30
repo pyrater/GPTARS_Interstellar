@@ -58,7 +58,7 @@ def capture_image() -> BytesIO:
             "--height", height
         ]
         process = subprocess.run(command, stdout=subprocess.PIPE, check=True)
-        print(height)
+        #print(height)
         return BytesIO(process.stdout)  # Return image as BytesIO
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Error capturing image: {e}")

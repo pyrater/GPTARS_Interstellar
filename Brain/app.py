@@ -520,7 +520,7 @@ if __name__ == "__main__":
     bt_controller_thread.start()
 
     try:
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Main program running. Press Ctrl+C to stop.")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] LOAD: Main program running. Press Ctrl+C to stop.")
         while True:
             pass  # Keep the main program running
     except KeyboardInterrupt:

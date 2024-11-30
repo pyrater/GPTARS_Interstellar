@@ -73,7 +73,7 @@ def detect_wake_word():
 
     speech = LiveSpeech(lm=False, keyphrase=WAKE_PHRASE, kws_threshold=1e-20)
     for phrase in speech:
-        print(f"Detected phrase: {phrase.hypothesis()}")
+        #print(f"Detected phrase: {phrase.hypothesis()}")
         if WAKE_PHRASE in phrase.hypothesis().lower():
             response = random.choice(tars_responses)
             print(f"[{current_time}] TARS: {response}")
@@ -85,7 +85,7 @@ def transcribe_command():
     """
     Transcribes a command using either the local Vosk model or the server.
     """
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TARS: Listening...")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] STAT: Listening...")
 
     if use_server_stt:
         return transcribe_with_server()
@@ -107,7 +107,7 @@ def transcribe_with_vosk():
                 data, _ = stream.read(4000)
                 if recognizer.AcceptWaveform(data.tobytes()):
                     result = recognizer.Result()
-                    print(f"Recognized: {result}")
+                    #print(f"Recognized: {result}")
                     if message_callback:
                         message_callback(result)
                     return result
@@ -181,7 +181,8 @@ def transcribe_with_server():
 
                     if rms > silence_threshold:  # Voice detected
                         if not detected_speech:
-                            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Speech detected.")
+                            #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Speech detected.")
+                            pass
                         detected_speech = True
                         speech_frames += 1
 
@@ -198,7 +199,7 @@ def transcribe_with_server():
 
                         # Stop recording if silence persists
                         if silent_frames > max_silent_frames:
-                            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Silence detected.")
+                            #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Silence detected.")
                             break
 
         # Ensure the audio buffer is not empty
@@ -209,7 +210,7 @@ def transcribe_with_server():
             return None
 
         # Send the audio buffer to the server
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Sending {buffer_size} bytes of audio")
+        #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]  Sending {buffer_size} bytes of audio")
         files = {"audio": ("audio.wav", audio_buffer, "audio/wav")}
 
         response = requests.post(server_url, files=files, timeout=10)
