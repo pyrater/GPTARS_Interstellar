@@ -200,9 +200,10 @@ def summarize_text(article, max_len=250, min_len=0, do_sample=False):
     #prompt = shortMEM + "\n" + "\n" + str(last_six_lines) + str(new_line) + f'\n{{"role": "TARS.", "date": "{date}", "time": "{time}", "content": "'
     #prompt = str(prompt)
 
-def read_character_content(charactercard):
+def read_character_content():
     global char_name, char_persona, personality, world_scenario, char_greeting, example_dialogue
 
+    charactercard = config['CHAR']['charactercard']
     try:
         with open(charactercard, "r") as file:
             content = file.read()
@@ -272,7 +273,7 @@ def token_count(text):
         print("Error:", response.status_code, response.text)
         return None
         
-read_character_content(config['CHAR']['charactercard'])
+read_character_content()
 #LOAD
 memory_db_path = os.path.abspath(f"memory/{config['CHAR']['char_name']}.pickle.gz")
 load_longMem(memory_db_path)

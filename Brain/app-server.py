@@ -52,7 +52,7 @@ blip_processor, blip_model = initialize_blip_model()
 """
 
 def initialize_whisper_model(
-    model_size="Small", 
+    model_size="large-v3", 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     compute_type="int8_float8"  # Use "float16" or "int8" for optimization
 ):
@@ -91,13 +91,14 @@ def caption_image():
         
         # Generate caption
         inputs = blip_processor(image, return_tensors="pt").to(device)
-        outputs = blip_model.generate(**inputs, max_new_tokens=150, num_beams=5)
+        outputs = blip_model.generate(**inputs, max_new_tokens=100, num_beams=3)
         caption = blip_processor.decode(outputs[0], skip_special_tokens=True)
         
         return jsonify({"caption": caption})
     except Exception as e:
         print("Error occurred during caption generation:", traceback.format_exc())
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/save_audio', methods=['POST'])

@@ -102,7 +102,7 @@ def transcribe_with_vosk():
     recognizer = None
     try:
         recognizer = KaldiRecognizer(vosk_model, SAMPLE_RATE)
-        print("KaldiRecognizer initialized successfully.")
+        #print("KaldiRecognizer initialized successfully.")
 
         with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="int16") as stream:
             max_duration_frames = 50  # Limit maximum recording duration (~12.5 seconds)
@@ -112,7 +112,7 @@ def transcribe_with_vosk():
                 data, _ = stream.read(4000)
                 if recognizer.AcceptWaveform(data.tobytes()):
                     result = recognizer.Result()
-                    print(f"[DEBUG] Recognized: {result}")
+                    #print(f"[DEBUG] Recognized: {result}")
                     if message_callback:
                         message_callback(result)
                     return result
@@ -170,7 +170,7 @@ def transcribe_with_server():
         noise_threshold = silence_threshold  # Minimum RMS to ignore random noise
         min_speech_duration = 4  # Require at least 4 consecutive frames of speech
 
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Starting audio recording...")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] STAT: Starting audio recording...")
         with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="int16") as stream:
             with wave.open(audio_buffer, "wb") as wf:
                 wf.setnchannels(1)
@@ -190,14 +190,14 @@ def transcribe_with_server():
 
                     if rms > silence_threshold:  # Voice detected
                         if not detected_speech:
-                            print("[DEBUG] Speech detected.")
+                            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] STAT: Speech detected.")
                         detected_speech = True
                         speech_frames += 1
                         silent_frames = 0  # Reset silent frames
                     elif detected_speech:  # Silence detected after speech
                         silent_frames += 1
                         if silent_frames > max_silent_frames:
-                            print("[DEBUG] Silence detected. Stopping recording.")
+                            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] STAT: Silence detected.")
                             break
 
                     total_frames += 1
@@ -209,7 +209,7 @@ def transcribe_with_server():
             print("[ERROR] Audio buffer is empty. No audio recorded.")
             return None
 
-        print(f"[DEBUG] Sending {buffer_size} bytes of audio to server...")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] STAT: Sent {buffer_size} bytes of audio")
         files = {"audio": ("audio.wav", audio_buffer, "audio/wav")}
 
         response = requests.post(server_url, files=files, timeout=10)

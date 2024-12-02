@@ -16,10 +16,7 @@ SST = uses vosk
 SD = Automatic1111
 Vision = Image Classifier
 
-Good Info: 
-https://www.instagram.com/wizard.py/
-https://www.youtube.com/watch?v=kRDku5vukIw
-
+Good Info: https://www.instagram.com/wizard.py/
 
 wizard uses the MG996R 55g Digital RC Servo Motors High Torque Metal Gear Servo
 Andrew uses: diymore 6PCS Metal Gear High Speed Torque Digital Servo Moto
