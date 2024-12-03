@@ -42,6 +42,8 @@ https://www.amazon.com/gp/product/B0CTSX8SJS/ref=ox_sc_act_title_2?smid=A1NR50YA
 Servos:
 https://www.amazon.com/gp/product/B0CGRP59HJ/ref=ox_sc_act_title_3?smid=A3F3CVCOVVNP2J
 
+NOTE: Each leg APPEARS to need 2 90g micro servos if you want exendable arms.
+
 Bolts:
 https://www.amazon.com/gp/product/B0CR6DY4SS/ref=ox_sc_act_title_4?smid=A1ZRRCZIF57JQ9
 https://www.amazon.com/gp/product/B0D9GW9K4G/ref=ox_sc_act_title_5?smid=A1ZRRCZIF57JQ9
@@ -76,6 +78,18 @@ https://www.amazon.com/OSOYOO-3-5inch-Display-Protective-Raspberry/dp/B09CD9W6NQ
 Servo Wires:
 https://www.amazon.com/OliYin-7-87in-Quadcopter-Extension-Futaba/dp/B0711TBZY2/ref=sr_1_7?sr=8-7
 
+
+MISC:
+Audio amp:
+https://www.amazon.com/dp/B0BTBS5NW2
+
+
+Audio Speaker:
+https://www.amazon.com/dp/B07GJ4GH67
+
+
+Camera:
+https://www.amazon.com/dp/B07GJ4GH67
 
 
 Orginal Fork info:
