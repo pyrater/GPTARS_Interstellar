@@ -1,8 +1,8 @@
 # Contributing to GPTARS_Interstellar
 
-Welcome to the GPTARS_Interstellar community! We're excited to have you contribute code, CAD files, documentation, or related content to this project. Whether you're an experienced developer or new to GitHub, this guide will walk you through the process of contributing.
+Welcome to the GPTARS_Interstellar community! We're excited to have you contribute code, CAD files, documentation, or related content to this project. This guide is for folks new to GitHub to help you quickly get setup to collaborate on the project.
 
-"Everybody good? Plenty of slaves for my robot colony?" -TARS
+> "Everybody good? Plenty of slaves for my robot colony?" -TARS
 
 ---
 
@@ -161,6 +161,7 @@ If other contributors make changes to the main repository, keep your fork in syn
 - [Git Basics](https://git-scm.com/doc)
 - [GitHub Docs](https://docs.github.com)
 - [Common Git Commands Cheat Sheet](https://education.github.com/git-cheat-sheet-education.pdf)
+- [Visual Studio Code - Working with GitHub](https://code.visualstudio.com/docs/sourcecontrol/github)
 
 ---
 
