@@ -2,7 +2,6 @@
 import os
 import sys
 import threading
-import time
 import requests
 from datetime import datetime
 import concurrent.futures
