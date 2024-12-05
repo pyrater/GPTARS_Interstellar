@@ -157,7 +157,6 @@ cython_debug/
 #Memory
 TARS.pickle.gz
 /venv
-requirements.txt
 TARS.wav
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
