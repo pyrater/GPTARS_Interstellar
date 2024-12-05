@@ -17,6 +17,8 @@ The TTS server must run on your GPU-enabled PC due to its computational requirem
 2. Install **CUDA** and **cuDNN** compatible with your NVIDIA GPU - [CUDA Installation](https://www.youtube.com/watch?v=krAUwYslS8E)
 3. Install **PyTorch** compatible with your CUDA and cuDNN versions - [PyTorch Installation](https://pytorch.org/get-started/locally/)
 
+---
+
 ### 2. Set Up XTTS API Server
 
 #### A. Install XTTS API Server
@@ -88,6 +90,8 @@ For more details, refer to the official [XTTS API Server Installation Guide](htt
 6. Click **"Execute"** to send the request.
 7. Check the response for a generated audio file. You should see a download field where you can download and listen to the audio output.
 
+---
+
 ### 3. Set Up the GPTARS_Interstellar Repository on Raspberry Pi
 
 #### A. Clone the Repository
@@ -100,8 +104,6 @@ For more details, refer to the official [XTTS API Server Installation Guide](htt
    ```bash
    cd GPTARS_Interstellar
    ```
-
----
 
 #### B. Install Chromium and Chromedriver
 Chromium and Chromedriver are required for Selenium-based operations in the project.
@@ -132,8 +134,6 @@ Chromium and Chromedriver are required for Selenium-based operations in the proj
      chromedriver --version
      ```
 
----
-
 #### C. Set Up the Python Environment
 1. Create a virtual environment:
    ```bash
@@ -148,13 +148,9 @@ Chromium and Chromedriver are required for Selenium-based operations in the proj
    pip install -r requirements.txt
    ```
 
----
-
 #### D. Connect Hardware
 1. Connect your **microphone** to the Raspberry Pi via USB or the 3.5mm jack.
 2. Connect your **speaker** to the Raspberry Pi using the audio output or Bluetooth.
-
----
 
 #### E. Run the Program
 1. Navigate to the `Brain/` folder within the repository:
