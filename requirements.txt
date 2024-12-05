@@ -3,3 +3,8 @@ pandas
 joblib
 scikit-learn
 evdev
+sounddevice
+vosk
+pocketsphinx
+transformers
+hyperdb-python

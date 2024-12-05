@@ -4,7 +4,7 @@
 
 1. **PC with NVIDIA GPU**: Ensure you have a PC with an NVIDIA GPU available for running the server.
 
-2. **Raspberry Pi 5**: The Raspberry Pi 5 will act as a client, sending TTS requests to the XTTS server running on the PC.
+2. **Raspberry Pi**: The Raspberry Pi will act as a client, sending TTS requests to the XTTS server running on the PC.
 
 ---
 
@@ -19,14 +19,13 @@ The TTS server must run on your GPU-enabled PC due to its computational requirem
 
 ### 2. Set Up XTTS API Server
 
-#### C. Clone the XTTS API Server Repository
+#### A. Install XTTS API Server
 Run the following command to clone the [XTTS API Server repository](https://github.com/daswer123/xtts-api-server):
 
 ```bash
 git clone https://github.com/daswer123/xtts-api-server.git
 ```
 
-#### B. Install XTTS API Server
 Follow the installation guide for your operating system:
 - **Windows**:
   1. Create and activate a virtual environment:
@@ -41,27 +40,25 @@ Follow the installation guide for your operating system:
 
 For more details, refer to the official [XTTS API Server Installation Guide](https://github.com/daswer123/xtts-api-server/tree/main).
 
-#### C. Add the TARS.wav Speaker File
+#### B. Add the TARS.wav Speaker File
 1. Download the `TARS-short.wav` and `TARS-long.wav` files from the `GPTARS_Interstellar` repository under `Brain/TTS/wakewords
 /VoiceClones`. These will be the different voices you can use for TARS.
 2. Place it in the `speakers/` directory within the XTTS project folder. If the directory does not exist, create it.
 
-#### D. Start the XTTS API Server
+#### C. Start the XTTS API Server
 1. Open a terminal in the `xtts-api-server` project directory.
 2. Activate your virtual environment if not already active:
 3. Start the XTTS API Server:
    ```bash
-   python -m xtts_api_server
+   python -m xtts_api_server --listen --port 8020
    ```
-
-#### E. Open the API Documentation
-1. Once the server is running, open a browser and navigate to:
+4. Once the server is running, open a browser and navigate to:
    ```
    http://localhost:8020/docs
    ```
-2. This will open the API's Swagger documentation interface, which you can use to test the server and its endpoints.
+5. This will open the API's Swagger documentation interface, which you can use to test the server and its endpoints.
 
-#### F. Verify the Available Speakers
+#### D. Verify the Server
 1. Locate the **GET /speakers** endpoint in the API documentation.
 2. Click **"Try it out"** and then **"Execute"** to test the endpoint.
 3. Ensure the response includes the `TARS-Short` and `TARS-Long` speaker files, with entries similar to:
@@ -79,10 +76,8 @@ For more details, refer to the official [XTTS API Server Installation Guide](htt
      }
    ]
    ```
-
-#### G. Test Text-to-Speech (TTS)
-1. Locate the **POST /tts_to_audio** endpoint in the API documentation.
-2. Click **"Try it out"** and input the following JSON in the **Request Body**:
+4. Locate the **POST /tts_to_audio** endpoint in the API documentation.
+5. Click **"Try it out"** and input the following JSON in the **Request Body**:
    ```json
    {
        "text": "Hello, this is TARS speaking.",
@@ -90,5 +85,84 @@ For more details, refer to the official [XTTS API Server Installation Guide](htt
        "language": "en"
    }
    ```
-3. Click **"Execute"** to send the request.
-4. Check the response for a generated audio file. You should see a download field where you can download and listen to the audio output.
+6. Click **"Execute"** to send the request.
+7. Check the response for a generated audio file. You should see a download field where you can download and listen to the audio output.
+
+### 3. Set Up the GPTARS_Interstellar Repository on Raspberry Pi
+
+#### A. Clone the Repository
+1. Open a terminal on your Raspberry Pi.
+2. Clone the **GPTARS_Interstellar** repository:
+   ```bash
+   git clone https://github.com/pyrater/GPTARS_Interstellar.git
+   ```
+3. Navigate to the cloned directory:
+   ```bash
+   cd GPTARS_Interstellar
+   ```
+
+---
+
+#### B. Install Chromium and Chromedriver
+Chromium and Chromedriver are required for Selenium-based operations in the project.
+
+1. **Update Your System**:
+   ```bash
+   sudo apt update
+   sudo apt upgrade -y
+   ```
+
+2. **Install Chromium**:
+   ```bash
+   sudo apt install -y chromium-browser
+   ```
+
+3. **Install Chromedriver for Selenium**:
+   ```bash
+   sudo apt install -y chromium-chromedriver
+   ```
+
+4. **Verify Installations**:
+   - Check Chromium installation:
+     ```bash
+     chromium-browser --version
+     ```
+   - Check Chromedriver installation:
+     ```bash
+     chromedriver --version
+     ```
+
+---
+
+#### C. Set Up the Python Environment
+1. Create a virtual environment:
+   ```bash
+   python3 -m venv venv
+   ```
+2. Activate the virtual environment:
+   ```bash
+   source venv/bin/activate
+   ```
+3. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+---
+
+#### D. Connect Hardware
+1. Connect your **microphone** to the Raspberry Pi via USB or the 3.5mm jack.
+2. Connect your **speaker** to the Raspberry Pi using the audio output or Bluetooth.
+
+---
+
+#### E. Run the Program
+1. Navigate to the `Brain/` folder within the repository:
+   ```bash
+   cd Brain/
+   ```
+2. Start the application:
+   ```bash
+   python app.py
+   ```
+3. The program should now be running and ready to interact using your microphone and speaker.
