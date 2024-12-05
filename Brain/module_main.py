@@ -24,6 +24,9 @@ from module_memory import *
 from module_engine import *
 from module_tts import *
 from module_imagesummary import *
+from module_config import load_config
+
+config = load_config()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Set the working directory to the base directory
@@ -31,42 +34,40 @@ os.chdir(BASE_DIR)
 sys.path.insert(0, BASE_DIR)
 sys.path.append(os.getcwd())
 
-config = configparser.ConfigParser()
-config.read('config.ini')
 
 # TTS Section
-ttsurl = config['TTS']['ttsurl']
-charvoice = config.getboolean('TTS', 'charvoice')
-ttsoption = config['TTS']['ttsoption']
-ttsclone = config['TTS']['ttsclone']
-voiceonly = config.getboolean('TTS', 'voiceonly')
+ttsurl = config['ttsurl']
+charvoice = config['charvoice']
+ttsoption = config['ttsoption']
+ttsclone = config['ttsclone']
+voiceonly = config['voiceonly']
 
 # EMOTION Section
-emotions = config.getboolean('EMOTION', 'enabled')
-emotion_model = config['EMOTION']['emotion_model']
-storepath = os.path.join(os.getcwd(), config['EMOTION']['storepath'])
+emotions = config['emotions']
+emotion_model = config['emotion_model']
+storepath = os.path.join(BASE_DIR, config['storepath'])
 
 # LLM Section
-llm_backend = config['LLM']['backend']
-base_url = config['LLM']['base_url']
-api_key = config['LLM']['api_key']
-contextsize = config.getint('LLM', 'contextsize')
-max_tokens = config.getint('LLM', 'max_tokens')
-temperature = config.getfloat('LLM', 'temperature')
-top_p = config.getfloat('LLM', 'top_p')
-seed_llm = config.getint('LLM', 'seed')
-systemprompt = config['LLM']['systemprompt']
-instructionprompt = config['LLM']['instructionprompt']
+llm_backend = config['llm_backend']
+base_url = config['base_url']
+api_key = config['api_key']
+contextsize = int(config['contextsize'])
+max_tokens = int(config['max_tokens'])
+temperature = float(config['temperature'])
+top_p = float(config['top_p'])
+seed_llm = int(config['seed_llm'])
+systemprompt = config['systemprompt']
+instructionprompt = config['instructionprompt']
 
 # CHAR Section
-charactercard = config['CHAR']['charactercard']
-user_name = config['CHAR']['user_name']
-user_details = config['CHAR']['user_details']
+charactercard = config['charactercard']
+user_name = config['user_name']
+user_details = config['user_details']
 
 # Discord Section
-TOKEN = config['DISCORD']['TOKEN']
-channel_id = config['DISCORD']['channel_id']
-discordenabled = config['DISCORD']['enabled'] 
+TOKEN = config['TOKEN']
+channel_id = config['channel_id']
+discordenabled = config['discordenabled']
 
 # Global Variables (if needed)
 global_source_image = None
