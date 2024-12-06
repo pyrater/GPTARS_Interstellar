@@ -8,3 +8,7 @@ vosk
 pocketsphinx
 transformers
 hyperdb-python
+tiktoken
+python-dotenv
+moviepy
+pygame

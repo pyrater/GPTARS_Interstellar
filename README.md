@@ -12,7 +12,7 @@ The Default v9 chasis bottom does not allow for installation of a SD card, too c
 Plan:
 LLM = ooba/openai/tabby (recommend https://github.com/theroyallab/tabbyAPI)
 TTS = local or xttsv2 using xtts-api-server WITH VOICE clone (https://github.com/daswer123/xtts-api-server)
-SST = uses vosk
+STT = uses vosk
 SD = Automatic1111
 Vision = Image Classifier
 

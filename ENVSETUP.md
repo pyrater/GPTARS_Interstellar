@@ -22,7 +22,7 @@ The TTS server must run on your GPU-enabled PC due to its computational requirem
 ### 2. Set Up XTTS API Server
 
 #### A. Install XTTS API Server
-Run the following command to clone the [XTTS API Server repository](https://github.com/daswer123/xtts-api-server):
+Run the following command on your GPU-enabled PC to clone the [XTTS API Server repository](https://github.com/daswer123/xtts-api-server):
 
 ```bash
 git clone https://github.com/daswer123/xtts-api-server.git
@@ -125,6 +125,7 @@ Chromium and Chromedriver are required for Selenium-based operations in the proj
    ```
 
 4. **Verify Installations**:
+
    - Check Chromium installation:
      ```bash
      chromium-browser --version
@@ -135,6 +136,7 @@ Chromium and Chromedriver are required for Selenium-based operations in the proj
      ```
 
 #### C. Set Up the Python Environment
+
 1. Create a virtual environment:
    ```bash
    python3 -m venv venv
@@ -149,10 +151,54 @@ Chromium and Chromedriver are required for Selenium-based operations in the proj
    ```
 
 #### D. Connect Hardware
-1. Connect your **microphone** to the Raspberry Pi via USB or the 3.5mm jack.
+
+1. Connect your **microphone** to the Raspberry Pi via USB.
 2. Connect your **speaker** to the Raspberry Pi using the audio output or Bluetooth.
 
-#### E. Run the Program
+#### E. Set the API Key in a `.env` File (Recommended for Secure Key Management)
+
+To securely store and use your API keys for OpenAI, Ooba, or Tabby, configure the `.env` file.
+
+**Add API Keys**:
+   Add the following lines to the `.env` file. Replace `your-actual-api-key` with your actual API key for the desired service:
+   ```env
+   OPENAI_API_KEY=your-actual-openai-api-key
+   OOBA_API_KEY=your-actual-ooba-api-key
+   TABBY_API_KEY=your-actual-tabby-api-key
+   ```
+
+#### F. Set the config.ini Parameters 
+
+1. Open the `config.ini` file located in the `Brain/` folder.
+
+2. Locate the `[TTS]` section and update the parameters:
+   ```ini
+   [TTS] # Text-to-Speech configuration (about 3.4GB TTS #xttsv2 or local or TARS)
+   ttsurl = http://<server-ip>:8020
+   # Replace <server-ip> with the IP address of the machine running the XTTS API Server (e.g., 192.168.2.20).
+   charvoice = True
+   # Use character-specific voice settings.
+   ttsoption = xttsv2
+   # Set this to `xttsv2` to use the XTTS API Server.
+   ttsclone = TARS-Short
+   # Set this to the desired speaker file (e.g., `TARS-Short` or `TARS-Long`).
+   ```
+   - The `ttsurl` should point to the IP and port of the XTTS API Server.
+   - The `ttsclone` should match the desired speaker (e.g., `TARS-Short`).
+
+3. Locate the `[LLM]` section and update the parameters (for OpenAI):
+   ```ini
+   [LLM] # Large Language Model configuration (ooba/OAI or tabby)
+   backend = openai
+   # Set this to `openai` if using OpenAI models.
+   base_url = https://api.openai.com
+   # The URL for the OpenAI API.
+   openai_model = gpt-4o-mini
+   # Specify the OpenAI model to use (e.g., gpt-4o-mini or another supported model).
+   ```
+   - Confirm that the `openai_model` matches the model available with your OpenAI API key.
+
+#### G. Run the Program
 1. Navigate to the `Brain/` folder within the repository:
    ```bash
    cd Brain/

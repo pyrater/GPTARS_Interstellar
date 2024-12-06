@@ -1,8 +1,11 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 def load_config():
     """
     Load configuration settings from 'config.ini' and return them as a dictionary.
     """
-    import os
     import sys
     import configparser
 
@@ -29,7 +32,7 @@ def load_config():
         "storepath": os.path.join(os.getcwd(), config['EMOTION']['storepath']),
         "llm_backend": config['LLM']['backend'],
         "base_url": config['LLM']['base_url'],
-        "api_key": config['LLM']['api_key'],
+        "api_key": get_api_key(config['LLM']['backend']),
         "contextsize": config.getint('LLM', 'contextsize'),
         "max_tokens": config.getint('LLM', 'max_tokens'),
         "temperature": config.getfloat('LLM', 'temperature'),
@@ -44,3 +47,25 @@ def load_config():
         "channel_id": config['DISCORD']['channel_id'],
         "discordenabled": config['DISCORD']['enabled'],
     }
+
+def get_api_key(llm_backend):
+    """
+    Retrieves the API key for the specified LLM backend.
+    """
+    # Map the backend to the corresponding environment variable
+    backend_to_env_var = {
+        "openai": "OPENAI_API_KEY",
+        "ooba": "OOBA_API_KEY",
+        "tabby": "TABBY_API_KEY"
+    }
+
+    # Check if the backend is supported
+    if llm_backend not in backend_to_env_var:
+        raise ValueError(f"Unsupported LLM backend: {llm_backend}")
+
+    # Fetch the API key from the environment
+    api_key = os.getenv(backend_to_env_var[llm_backend])
+    if not api_key:
+        raise ValueError(f"API key not found for LLM backend: {llm_backend}")
+    
+    return api_key
