@@ -109,6 +109,7 @@ def build_prompt(user_prompt):
     now = datetime.now() # Current date and time
     date = now.strftime("%m/%d/%Y")
     time = now.strftime("%H:%M:%S")
+
     # Handle toggling voice-only mode
     if "voice only mode on" in user_prompt:
         voiceonly = True
@@ -136,7 +137,8 @@ def build_prompt(user_prompt):
             #socketio.emit('bot_message', {'message': sdpicture})
        
             #dont save tool info to memory
-            #threading.Thread(target=longMEM_tool, args=(module_engine,)).start()  
+            #threading.Thread(target=longMEM_tool, args=(module_engine,)).start() 
+ 
     # Build basic prompt structure
     charactercard = f"\nPersona: {char_persona}\n\nWorld Scenario: {world_scenario}\n\nDialog:\n{example_dialogue}\n"
     dtg = f"Current Date: {date}\nCurrent Time: {time}\n"
@@ -209,15 +211,27 @@ def get_completion(prompt, istext):
     if istext == "True":
         prompt = build_prompt(prompt)
 
-    # Set the headers and data for the request
-    url = f"{base_url}/v1/completions"
+    # Set the header for the request
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}"
     }
 
     # Handle OpenAI backend
-    if llm_backend == "ooba":
+    if llm_backend == "openai":
+        url = f"{base_url}/v1/chat/completions"
+        data = {
+            "model": config['LLM']['openai_model'],  # GPT-4 or GPT-3.5-turbo
+            "messages": [
+                {"role": "system", "content": systemprompt},
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p
+        }
+    # Handle Ooba backend
+    elif llm_backend == "ooba":
         url = f"{base_url}/v1/completions"
         data = {
             "prompt": prompt,
@@ -226,24 +240,11 @@ def get_completion(prompt, istext):
             "top_p": top_p,
             "seed": seed_llm
         }
-    
+    # Handle Tabby backend
     elif llm_backend == "tabby":
         url = f"{base_url}/v1/completions"
         data = {
             "prompt": prompt,
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-            "top_p": top_p
-        }
-
-    elif llm_backend == "openai":
-        url = f"{base_url}/v1/chat/completions"
-        data = {
-            "model": config['LLM']['openai_model'],  # GPT-4 or GPT-3.5-turbo
-            "messages": [
-                {"role": "system", "content": systemprompt},
-                {"role": "user", "content": prompt}
-            ],
             "max_tokens": max_tokens,
             "temperature": temperature,
             "top_p": top_p
@@ -274,10 +275,10 @@ def extract_text(json_response, picture):
     try:
         # Determine the correct field for text extraction based on response structure
         if 'choices' in json_response:
-            if 'message' in json_response['choices'][0]:
+            if llm_backend == "openai":
                 # For OpenAI's chat.completion API
                 text_content = json_response['choices'][0]['message']['content']
-            else:
+            elif llm_backend == "ooba" or llm_backend == "tabby":
                 # For other backends like Ooba or Tabby
                 text_content = json_response['choices'][0]['text']
         else:
@@ -315,17 +316,17 @@ def token_count(text):
     '''
 
     # Check the LLM backend and set the URL accordingly
-    if llm_backend == "ooba":
-        url = f"{base_url}/v1/internal/token-count"
-    elif llm_backend == "tabby":
-        url = f"{base_url}/v1/token/encode"
-    elif llm_backend == "openai":
+    if llm_backend == "openai":
         # OpenAI doesn’t have a direct token count endpoint; you must estimate using tiktoken or similar tools.
         # This implementation assumes you calculate the token count locally.
         from tiktoken import encoding_for_model
         enc = encoding_for_model(config['LLM']['openai_model'])
         length = {"length": len(enc.encode(text))}
         return length
+    elif llm_backend == "ooba":
+        url = f"{base_url}/v1/internal/token-count"
+    elif llm_backend == "tabby":
+        url = f"{base_url}/v1/token/encode"
 
     headers = {
         "Content-Type": "application/json",
@@ -357,7 +358,7 @@ def chat_completions_with_character(messages, mode, character):
             "temperature": temperature,
             "top_p": top_p
         }
-    else:
+    elif llm_backend == "ooba" or llm_backend == "tabby":
         url = f"{base_url}/v1/chat/completions"
         headers = {"Content-Type": "application/json"}
         data = {

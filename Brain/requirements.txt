@@ -1,5 +1,4 @@
 requests  # HTTP library for making API calls.
-numpy  # Fundamental package for numerical computations.
 pandas  # Data manipulation and analysis library.
 scikit-learn  # Tools for predictive data analysis.
 joblib  # Efficient serialization of Python objects.
@@ -13,3 +12,8 @@ selenium  # Web automation library for controlling browsers.
 chromedriver_installer  # Automatically downloads and installs ChromeDriver.
 discord.py  # Discord API wrapper for bot creation.
 hyperdb-python  # High-performance database library.
+tiktoken 
+python-dotenv
+moviepy
+pygame
+

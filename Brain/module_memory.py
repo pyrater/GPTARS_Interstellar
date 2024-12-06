@@ -24,7 +24,9 @@ config.read('config.ini')
 global hyper_db
 global memory_db_path
 longMEM_Use = True
-api_key = get_api_key(config['LLM']['backend'])
+llm_backend = config['LLM']['backend']
+api_key = get_api_key(llm_backend)
+base_url = config['LLM']['base_url']
 
 #MEMORY FUNCTIONS
 def remember(query):
@@ -255,17 +257,17 @@ def token_count(text):
     '''
 
     # Check the LLM backend and set the URL accordingly
-    if config['LLM']['backend'] == "ooba":
-        url = f"{config['LLM']['base_url']}/v1/internal/token-count"
-    elif config['LLM']['backend'] == "tabby":
-        url = f"{config['LLM']['base_url']}/v1/token/encode"
-    elif config['LLM']['backend'] == "openai":
+    if llm_backend == "openai":
         # OpenAI doesn’t have a direct token count endpoint; you must estimate using tiktoken or similar tools.
         # This implementation assumes you calculate the token count locally.
         from tiktoken import encoding_for_model
         enc = encoding_for_model(config['LLM']['openai_model'])
         length = {"length": len(enc.encode(text))}
         return length
+    elif llm_backend == "ooba":
+        url = f"{base_url}/v1/internal/token-count"
+    elif llm_backend == "tabby":
+        url = f"{base_url}/v1/token/encode"
 
     headers = {
         "Content-Type": "application/json",

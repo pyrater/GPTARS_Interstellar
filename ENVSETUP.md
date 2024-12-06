@@ -145,7 +145,7 @@ Chromium and Chromedriver are required for Selenium-based operations in the proj
    ```bash
    source venv/bin/activate
    ```
-3. Install the required dependencies:
+3. Install the required dependencies under `Brain/`:
    ```bash
    pip install -r requirements.txt
    ```
@@ -157,10 +157,10 @@ Chromium and Chromedriver are required for Selenium-based operations in the proj
 
 #### E. Set the API Key in a `.env` File (Recommended for Secure Key Management)
 
-To securely store and use your API keys for OpenAI, Ooba, or Tabby, configure the `.env` file.
+To securely store and use your API keys for OpenAI, Ooba, or Tabby, create and configure a `.env` file.
 
 **Add API Keys**:
-   Add the following lines to the `.env` file. Replace `your-actual-api-key` with your actual API key for the desired service:
+   Add the following lines to your `.env` file. Replace `your-actual-api-key` with your actual API key for the desired service:
    ```env
    OPENAI_API_KEY=your-actual-openai-api-key
    OOBA_API_KEY=your-actual-ooba-api-key
