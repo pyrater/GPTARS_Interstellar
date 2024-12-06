@@ -24,7 +24,9 @@ from module_memory import *
 from module_engine import *
 from module_tts import *
 from module_imagesummary import *
-from module_config import get_api_key
+from module_config import *
+
+config = load_config()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Set the working directory to the base directory
@@ -32,42 +34,40 @@ os.chdir(BASE_DIR)
 sys.path.insert(0, BASE_DIR)
 sys.path.append(os.getcwd())
 
-config = configparser.ConfigParser()
-config.read('config.ini')
 
 # TTS Section
-ttsurl = config['TTS']['ttsurl']
-charvoice = config.getboolean('TTS', 'charvoice')
-ttsoption = config['TTS']['ttsoption']
-ttsclone = config['TTS']['ttsclone']
-voiceonly = config.getboolean('TTS', 'voiceonly')
+ttsurl = config['ttsurl']
+charvoice = config['charvoice']
+ttsoption = config['ttsoption']
+ttsclone = config['ttsclone']
+voiceonly = config['voiceonly']
 
 # EMOTION Section
-emotions = config.getboolean('EMOTION', 'enabled')
-emotion_model = config['EMOTION']['emotion_model']
-storepath = os.path.join(os.getcwd(), config['EMOTION']['storepath'])
+emotions = config['emotions']
+emotion_model = config['emotion_model']
+storepath = os.path.join(BASE_DIR, config['storepath'])
 
 # LLM Section
-llm_backend = config['LLM']['backend']
-api_key = get_api_key(llm_backend)
-base_url = config['LLM']['base_url']
-contextsize = config.getint('LLM', 'contextsize')
-max_tokens = config.getint('LLM', 'max_tokens')
-temperature = config.getfloat('LLM', 'temperature')
-top_p = config.getfloat('LLM', 'top_p')
-seed_llm = config.getint('LLM', 'seed')
-systemprompt = config['LLM']['systemprompt']
-instructionprompt = config['LLM']['instructionprompt']
+llm_backend = config['llm_backend']
+base_url = config['base_url']
+api_key = config['api_key']
+contextsize = int(config['contextsize'])
+max_tokens = int(config['max_tokens'])
+temperature = float(config['temperature'])
+top_p = float(config['top_p'])
+seed_llm = int(config['seed_llm'])
+systemprompt = config['systemprompt']
+instructionprompt = config['instructionprompt']
 
 # CHAR Section
-charactercard = config['CHAR']['charactercard']
-user_name = config['CHAR']['user_name']
-user_details = config['CHAR']['user_details']
+charactercard = config['charactercard']
+user_name = config['user_name']
+user_details = config['user_details']
 
 # Discord Section
-TOKEN = config['DISCORD']['TOKEN']
-channel_id = config['DISCORD']['channel_id']
-discordenabled = config['DISCORD']['enabled'] 
+TOKEN = config['TOKEN']
+channel_id = config['channel_id']
+discordenabled = config['discordenabled']
 
 # Global Variables (if needed)
 global_source_image = None
@@ -81,10 +81,22 @@ start_time = time.time() #calc time
 stop_event = threading.Event()
 executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
 
-#TTS
-def play_audio_stream(tts_stream, samplerate=22050, channels=1):
+import numpy as np
+import sounddevice as sd
+
+import numpy as np
+import sounddevice as sd
+
+def play_audio_stream(tts_stream, samplerate=22050, channels=1, gain=1.0, normalize=False):
     """
-    Play the audio stream through speakers using SoundDevice.
+    Play the audio stream through speakers using SoundDevice with volume/gain adjustment.
+    
+    Parameters:
+    - tts_stream: Stream of audio data in chunks.
+    - samplerate: The sample rate of the audio data.
+    - channels: The number of audio channels (e.g., 1 for mono, 2 for stereo).
+    - gain: A multiplier for adjusting the volume. Default is 1.0 (no change).
+    - normalize: Whether to normalize the audio to use the full dynamic range.
     """
     try:
         with sd.OutputStream(samplerate=samplerate, channels=channels, dtype='int16') as stream:
@@ -92,14 +104,26 @@ def play_audio_stream(tts_stream, samplerate=22050, channels=1):
                 if chunk:
                     # Convert bytes to int16 using numpy
                     audio_data = np.frombuffer(chunk, dtype='int16')
+                    
+                    # Normalize the audio (if enabled)
+                    if normalize:
+                        max_value = np.max(np.abs(audio_data))
+                        if max_value > 0:
+                            audio_data = audio_data / max_value * 32767
+                    
+                    # Apply gain adjustment
+                    audio_data = np.clip(audio_data * gain, -32768, 32767).astype('int16')
+
+                    # Write the adjusted audio data to the stream
                     stream.write(audio_data)
                 else:
-                    print("Received empty chunk.")        
+                    print("Received empty chunk.")
             
-            #print("Audio playback finished. Starting transcription...")
+            # Trigger the transcription process after playback
             transcribe_command()  # go back to listening for voice (non wake word)
     except Exception as e:
         print(f"Error during audio playback: {e}")
+
 
 #LLM
 def build_prompt(user_prompt):

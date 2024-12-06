@@ -1,9 +1,7 @@
-import pyttsx3
 import time
 import requests
 import configparser
-from io import BytesIO
-import tempfile
+import os 
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -21,31 +19,8 @@ def get_tts_stream(text_to_read, ttsurl, ttsclone):
         chunk_size = 1024
 
         if charvoice and ttsoption == "local":
-            # Initialize the text-to-speech engine
-            engine = pyttsx3.init()
-            # Set the desired properties for the TTS voice
-            voices = engine.getProperty('voices')
-            engine.setProperty('voice', voices[1].id)  # Choose the desired voice
-            engine.setProperty('rate', 200)  # Adjust the speaking rate
-            engine.setProperty('volume', 1.0)  # Adjust the volume
-
-            # Create a temporary file for TTS output
-            with tempfile.NamedTemporaryFile(delete=True, suffix=".wav") as temp_audio:
-                temp_filename = temp_audio.name
-                engine.save_to_file(text_to_read, temp_filename)
-                engine.runAndWait()
-
-                # Read the temporary file into a BytesIO buffer
-                with open(temp_filename, 'rb') as audio_file:
-                    audio_buffer = BytesIO(audio_file.read())
-
-                # Rewind the buffer and yield chunks
-                audio_buffer.seek(0)
-                while True:
-                    chunk = audio_buffer.read(chunk_size)
-                    if not chunk:
-                        break
-                    yield chunk
+            command = f'espeak-ng -s 140 -p 50 -v en-us+m3 "{text_to_read}" --stdout | sox -t wav - -c 1 -t wav - gain 0 reverb 30 highpass 500 lowpass 3000 | aplay'
+            os.system(command)
 
         elif charvoice and ttsoption == "xttsv2":
             full_url = f"{ttsurl}/tts_stream"

@@ -3,7 +3,6 @@ pandas  # Data manipulation and analysis library.
 scikit-learn  # Tools for predictive data analysis.
 joblib  # Efficient serialization of Python objects.
 sounddevice  # Audio I/O for capturing and playing sound.
-pyttsx3  # Text-to-speech library for Python.
 vosk  # Offline speech recognition library.
 pocketsphinx  # CMU's lightweight speech recognition library.
 sentence-transformers  # Library for sentence embeddings and semantic search.
@@ -14,6 +13,8 @@ discord.py  # Discord API wrapper for bot creation.
 hyperdb-python  # High-performance database library.
 tiktoken 
 python-dotenv
-moviepy
 pygame
-
+moviepy  # Python library for video editing / playing videos.
+espeak-ng 
+sox 
+alsa-utils
