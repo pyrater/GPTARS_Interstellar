@@ -2,13 +2,13 @@
 
 ## Hardware Prerequisites
 
-1. **PC with NVIDIA GPU**: Ensure you have a PC with an NVIDIA GPU available for running the server.
+1. **PC with NVIDIA GPU**: Ensure you have a PC with an NVIDIA GPU available for running the XTTS server.
 
-2. **Raspberry Pi**: The Raspberry Pi will act as a client, sending TTS requests to the XTTS server running on the PC.
+2. **Raspberry Pi**: For obvious reasons.
 
 ---
 
-## Step-by-Step Guide (WINDOWS ONLY INSTRUCTIONS)
+## Step-by-Step Guide (FOR WINDOWS)
 
 ### 1. Prepare Your PC with NVIDIA GPU
 The TTS server must run on your GPU-enabled PC due to its computational requirements.
