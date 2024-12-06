@@ -33,6 +33,7 @@ def load_config():
         "llm_backend": config['LLM']['backend'],
         "base_url": config['LLM']['base_url'],
         "api_key": get_api_key(config['LLM']['backend']),
+        "openai_model": config['LLM']['openai_model'],
         "contextsize": config.getint('LLM', 'contextsize'),
         "max_tokens": config.getint('LLM', 'max_tokens'),
         "temperature": config.getfloat('LLM', 'temperature'),

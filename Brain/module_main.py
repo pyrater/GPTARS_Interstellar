@@ -245,7 +245,7 @@ def get_completion(prompt, istext):
     if llm_backend == "openai":
         url = f"{base_url}/v1/chat/completions"
         data = {
-            "model": config['LLM']['openai_model'],  # GPT-4 or GPT-3.5-turbo
+            "model": config['openai_model'],  # GPT-4 or GPT-3.5-turbo
             "messages": [
                 {"role": "system", "content": systemprompt},
                 {"role": "user", "content": prompt}
@@ -344,7 +344,7 @@ def token_count(text):
         # OpenAI doesn’t have a direct token count endpoint; you must estimate using tiktoken or similar tools.
         # This implementation assumes you calculate the token count locally.
         from tiktoken import encoding_for_model
-        enc = encoding_for_model(config['LLM']['openai_model'])
+        enc = encoding_for_model(config['openai_model'])
         length = {"length": len(enc.encode(text))}
         return length
     elif llm_backend == "ooba":
@@ -377,7 +377,7 @@ def chat_completions_with_character(messages, mode, character):
             "Authorization": f"Bearer {api_key}"
         }
         data = {
-            "model": config['LLM']['openai_model'],
+            "model": config['openai_model'],
             "messages": messages,
             "temperature": temperature,
             "top_p": top_p
