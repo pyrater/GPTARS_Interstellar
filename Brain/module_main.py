@@ -81,10 +81,22 @@ start_time = time.time() #calc time
 stop_event = threading.Event()
 executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
 
-#TTS
-def play_audio_stream(tts_stream, samplerate=22050, channels=1):
+import numpy as np
+import sounddevice as sd
+
+import numpy as np
+import sounddevice as sd
+
+def play_audio_stream(tts_stream, samplerate=22050, channels=1, gain=1.0, normalize=False):
     """
-    Play the audio stream through speakers using SoundDevice.
+    Play the audio stream through speakers using SoundDevice with volume/gain adjustment.
+    
+    Parameters:
+    - tts_stream: Stream of audio data in chunks.
+    - samplerate: The sample rate of the audio data.
+    - channels: The number of audio channels (e.g., 1 for mono, 2 for stereo).
+    - gain: A multiplier for adjusting the volume. Default is 1.0 (no change).
+    - normalize: Whether to normalize the audio to use the full dynamic range.
     """
     try:
         with sd.OutputStream(samplerate=samplerate, channels=channels, dtype='int16') as stream:
@@ -92,14 +104,26 @@ def play_audio_stream(tts_stream, samplerate=22050, channels=1):
                 if chunk:
                     # Convert bytes to int16 using numpy
                     audio_data = np.frombuffer(chunk, dtype='int16')
+                    
+                    # Normalize the audio (if enabled)
+                    if normalize:
+                        max_value = np.max(np.abs(audio_data))
+                        if max_value > 0:
+                            audio_data = audio_data / max_value * 32767
+                    
+                    # Apply gain adjustment
+                    audio_data = np.clip(audio_data * gain, -32768, 32767).astype('int16')
+
+                    # Write the adjusted audio data to the stream
                     stream.write(audio_data)
                 else:
-                    print("Received empty chunk.")        
+                    print("Received empty chunk.")
             
-            #print("Audio playback finished. Starting transcription...")
+            # Trigger the transcription process after playback
             transcribe_command()  # go back to listening for voice (non wake word)
     except Exception as e:
         print(f"Error during audio playback: {e}")
+
 
 #LLM
 def build_prompt(user_prompt):

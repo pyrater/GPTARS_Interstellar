@@ -13,3 +13,6 @@ chromedriver_installer  # Automatically downloads and installs ChromeDriver.
 discord.py  # Discord API wrapper for bot creation.
 hyperdb-python  # High-performance database library.
 moviepy  # Python library for video editing / playing videos.
+espeak-ng 
+sox 
+alsa-utils

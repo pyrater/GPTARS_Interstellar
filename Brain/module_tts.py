@@ -19,7 +19,7 @@ def get_tts_stream(text_to_read, ttsurl, ttsclone):
         chunk_size = 1024
 
         if charvoice and ttsoption == "local":
-            command = f'espeak-ng -s 180 -p 40 -v en-us+m3 "{text_to_read}" --stdout | aplay'
+            command = f'espeak-ng -s 140 -p 50 -v en-us+m3 "{text_to_read}" --stdout | sox -t wav - -c 1 -t wav - gain 0 reverb 30 highpass 500 lowpass 3000 | aplay'
             os.system(command)
 
         elif charvoice and ttsoption == "xttsv2":
