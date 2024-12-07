@@ -35,6 +35,13 @@ Software Demo (all locally hosted RTX 3060 streaming to RPI):
 
 My Hardware:
 
+
+Screws Needed (atleast):
+6  M20
+40 M14
+76 M10
+
+
 Rods:
 https://www.amazon.com/gp/product/B01MAYQ12S/ref=ox_sc_act_title_1?smid=ATVPDKIKX0DER&psc=1
 https://www.amazon.com/gp/product/B0CTSX8SJS/ref=ox_sc_act_title_2?smid=A1NR50YASSZD11
