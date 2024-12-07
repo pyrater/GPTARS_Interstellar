@@ -10,6 +10,8 @@ import json
 import configparser
 import sys
 
+from module_config import get_api_key
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Set the working directory to the base directory
 os.chdir(BASE_DIR)
@@ -22,6 +24,9 @@ config.read('config.ini')
 global hyper_db
 global memory_db_path
 longMEM_Use = True
+llm_backend = config['LLM']['backend']
+api_key = get_api_key(llm_backend)
+base_url = config['LLM']['base_url']
 
 #MEMORY FUNCTIONS
 def remember(query):
@@ -119,9 +124,6 @@ def remember_shortterm_tokenlim(short_term_tokens) -> str:
     # Since we processed entries in reverse, reverse the accumulated list to maintain the original order in output
     #formatted_output = '\n'.join([f"user_input: {ui}\nbot_response: {br}" for ui, br in reversed(accumulated_documents)])
     formatted_output = '\n'.join([f"{{user}}: {ui}\n{{char}}: {br}" for ui, br in reversed(accumulated_documents)])
-
-
-
 
     return formatted_output
 
@@ -250,16 +252,26 @@ def read_character_content():
         print(f"Error: {e}")
 
 def token_count(text):
-    
-    if config['LLM']['backend'] == "ooba":
-        url = f"{config['LLM']['base_url']}/v1/internal/token-count"
+    '''
+    Calculate the number of tokens in the given text for a specific LLM backend.
+    '''
 
-    elif config['LLM']['backend'] == "tabby":
-        url = f"{config['LLM']['base_url']}/v1/token/encode"  # Fixed typo here
+    # Check the LLM backend and set the URL accordingly
+    if llm_backend == "openai":
+        # OpenAI doesn’t have a direct token count endpoint; you must estimate using tiktoken or similar tools.
+        # This implementation assumes you calculate the token count locally.
+        from tiktoken import encoding_for_model
+        enc = encoding_for_model(config['LLM']['openai_model'])
+        length = {"length": len(enc.encode(text))}
+        return length
+    elif llm_backend == "ooba":
+        url = f"{base_url}/v1/internal/token-count"
+    elif llm_backend == "tabby":
+        url = f"{base_url}/v1/token/encode"
 
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {config['LLM']['api_key']}"
+        "Authorization": f"Bearer {api_key}"
     }
     data = {
         "text": text

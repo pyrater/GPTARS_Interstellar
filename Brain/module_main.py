@@ -24,7 +24,7 @@ from module_memory import *
 from module_engine import *
 from module_tts import *
 from module_imagesummary import *
-from module_config import load_config
+from module_config import *
 
 config = load_config()
 
@@ -127,21 +127,20 @@ def play_audio_stream(tts_stream, samplerate=22050, channels=1, gain=1.0, normal
 
 #LLM
 def build_prompt(user_prompt):
+    
     global char_name, char_persona, personality, world_scenario, char_greeting, example_dialogue, voiceonly, systemprompt, instructionprompt
-    now = datetime.now()
+    
+    now = datetime.now() # Current date and time
     date = now.strftime("%m/%d/%Y")
     time = now.strftime("%H:%M:%S")
 
-    #VOICEMODE SHIT
+    # Handle toggling voice-only mode
     if "voice only mode on" in user_prompt:
         voiceonly = True
-
-    if "voice only mode off" in user_prompt:
+    elif "voice only mode off" in user_prompt:
         voiceonly = False
-
  
     module_engine = check_for_module(user_prompt)
-    
     if module_engine != "No_Tool":
         #if "*User is leaving the chat politely*" in module_engine:
             #stop_idle() #StopAFK mssages
@@ -162,13 +161,12 @@ def build_prompt(user_prompt):
             #socketio.emit('bot_message', {'message': sdpicture})
        
             #dont save tool info to memory
-            #threading.Thread(target=longMEM_tool, args=(module_engine,)).start()  
-
-    #PROMPT SHIT
+            #threading.Thread(target=longMEM_tool, args=(module_engine,)).start() 
+ 
+    # Build basic prompt structure
     charactercard = f"\nPersona: {char_persona}\n\nWorld Scenario: {world_scenario}\n\nDialog:\n{example_dialogue}\n"
     dtg = f"Current Date: {date}\nCurrent Time: {time}\n"
-    past = longtermMEMPast(user_prompt)
-
+    past = longtermMEMPast(user_prompt) # Get past memories
     # Correct the order and logic of replacements clean up memories and past json crap
     past = past.replace("\\\\", "\\")  # Reduce double backslashes to single
     past = past.replace("\\n", "\n")   # Replace escaped newline characters with actual newlines
@@ -177,7 +175,6 @@ def build_prompt(user_prompt):
 
     history = ""
     userInput = user_prompt  # Simulating user input to avoid hanging
-
 
     if module_engine != "No_Tool":
         module_engine = module_engine + "\n"
@@ -197,7 +194,6 @@ def build_prompt(user_prompt):
         f"{module_engine}"
         f"### Response: {char_name}: "
     )
-
     #Calc how much space is avail for chat history
     remaining = token_count(promptsize).get('length', 0)
     memallocation = int(contextsize - remaining)
@@ -215,7 +211,6 @@ def build_prompt(user_prompt):
         f"{module_engine}"
         f"### Response: {char_name}: "
     )
-
     prompt = prompt.replace("{user}", user_name) 
     prompt = prompt.replace("{char}", char_name)
     prompt = prompt.replace("\\\\", "\\") 
@@ -230,53 +225,102 @@ def build_prompt(user_prompt):
     return prompt
 
 def get_completion(prompt, istext):
+    '''
+    Get the completion from the LLM backend.
+    '''
+
     global char_name, char_persona, personality, world_scenario, char_greeting, example_dialogue
-       
+    
+    # Check if the prompt is text or not
     if istext == "True":
         prompt = build_prompt(prompt)
 
-    url = f"{base_url}/v1/completions"
+    # Set the header for the request
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}"
     }
 
-    data = {
-        "prompt": prompt,
-        "max_tokens": max_tokens,
-        "temperature": temperature,
-        "top_p": top_p,
-        "seed": seed_llm
-    }
-    response = requests.post(url, headers=headers, data=json.dumps(data))
+    # Handle OpenAI backend
+    if llm_backend == "openai":
+        url = f"{base_url}/v1/chat/completions"
+        data = {
+            "model": config['openai_model'],  # GPT-4 or GPT-3.5-turbo
+            "messages": [
+                {"role": "system", "content": systemprompt},
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p
+        }
+    # Handle Ooba backend
+    elif llm_backend == "ooba":
+        url = f"{base_url}/v1/completions"
+        data = {
+            "prompt": prompt,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "seed": seed_llm
+        }
+    # Handle Tabby backend
+    elif llm_backend == "tabby":
+        url = f"{base_url}/v1/completions"
+        data = {
+            "prompt": prompt,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p
+        }
+    else:
+        raise ValueError(f"Unsupported LLM backend: {llm_backend}")
 
+    # Send the request and get the response
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    response.raise_for_status()  # Handle HTTP errors
+    
+    # Check if the response is successful
     if istext == "False":
         text_to_read = extract_text(response.json(), True)
     else:
         text_to_read = extract_text(response.json(), False)
 
-    text_to_read = text_to_read.replace('<END>', '') #without this if may continue on forever (max token)
+    text_to_read = text_to_read.replace('<END>', '') # Without this if may continue on forever (max token)
+
     return(text_to_read)
 
 def extract_text(json_response, picture):
+    """
+    Extracts text from the JSON response. Handles OpenAI's chat.completion and other structures.
+    """
     global char_name
     
-    if picture == False:
-        try:
-            cleaned_text = re.sub(r"\s{2,}", " ", json_response['choices'][0]['text'].strip())  # Collapse multiple spaces.
-            cleaned_text = re.sub(r"<\|.*?\|>", "", cleaned_text, flags=re.DOTALL)  # Remove <| and |> tags.
-            cleaned_text = re.sub(rf"{re.escape(char_name)}:\s*", "", cleaned_text)  # Remove lines with character's name followed by a colon.
-            cleaned_text = re.sub(r"\n\s*\n", "\n", cleaned_text).strip()  # Remove empty lines.
-            return cleaned_text
-        except (KeyError, IndexError, TypeError) as error:
-            return f"Text content could not be found. Error: {str(error)}"
-    else:
-        try:
-            cleaned_text = re.sub(r"\s{2,}", " ", json_response['choices'][0]['text'].strip())  # Collapse multiple spaces.
-            cleaned_text = re.sub(r"<\|.*?\|>", "", cleaned_text, flags=re.DOTALL)  # Remove <| and |> tags.
-            return cleaned_text
-        except (KeyError, IndexError, TypeError) as error:
-            return f"Text content could not be found. Error: {str(error)}"
+    try:
+        # Determine the correct field for text extraction based on response structure
+        if 'choices' in json_response:
+            if llm_backend == "openai":
+                # For OpenAI's chat.completion API
+                text_content = json_response['choices'][0]['message']['content']
+            elif llm_backend == "ooba" or llm_backend == "tabby":
+                # For other backends like Ooba or Tabby
+                text_content = json_response['choices'][0]['text']
+        else:
+            raise KeyError("Invalid response format: 'choices' key not found.")
+
+        # Clean up the text
+        cleaned_text = re.sub(r"\s{2,}", " ", text_content.strip())  # Collapse multiple spaces
+        cleaned_text = re.sub(r"<\|.*?\|>", "", cleaned_text, flags=re.DOTALL)  # Remove <|...|> tags
+        
+        if not picture:
+            # Additional cleanup for non-picture responses
+            cleaned_text = re.sub(rf"{re.escape(char_name)}:\s*", "", cleaned_text)  # Remove character name prefix
+            cleaned_text = re.sub(r"\n\s*\n", "\n", cleaned_text).strip()  # Remove empty lines
+
+        return cleaned_text
+
+    except (KeyError, IndexError, TypeError) as error:
+        return f"Text content could not be found. Error: {str(error)}"
 
 def stop_generation():
     global base_url, api_key
@@ -291,10 +335,21 @@ def stop_generation():
     print("Stop generation request successful.")
 
 def token_count(text):
-    if llm_backend == "ooba":
-        url = f"{base_url}/v1/internal/token-count"
+    '''
+    Calculate the number of tokens in the given text for a specific LLM backend.
+    '''
 
-    if llm_backend == "tabby":
+    # Check the LLM backend and set the URL accordingly
+    if llm_backend == "openai":
+        # OpenAI doesn’t have a direct token count endpoint; you must estimate using tiktoken or similar tools.
+        # This implementation assumes you calculate the token count locally.
+        from tiktoken import encoding_for_model
+        enc = encoding_for_model(config['openai_model'])
+        length = {"length": len(enc.encode(text))}
+        return length
+    elif llm_backend == "ooba":
+        url = f"{base_url}/v1/internal/token-count"
+    elif llm_backend == "tabby":
         url = f"{base_url}/v1/token/encode"
 
     headers = {
@@ -314,15 +369,28 @@ def token_count(text):
         return None
 
 def chat_completions_with_character(messages, mode, character):
-    url = f"{base_url}/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json"
-    }
-    data = {
-        "messages": messages,
-        "mode": mode,
-        "character": character
-    }
+
+    if llm_backend == "openai":
+        url = f"{base_url}/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+        data = {
+            "model": config['openai_model'],
+            "messages": messages,
+            "temperature": temperature,
+            "top_p": top_p
+        }
+    elif llm_backend == "ooba" or llm_backend == "tabby":
+        url = f"{base_url}/v1/chat/completions"
+        headers = {"Content-Type": "application/json"}
+        data = {
+            "messages": messages,
+            "mode": mode,
+            "character": character
+        }
+
     response = requests.post(url, headers=headers, data=json.dumps(data))
     return response.json()
 
@@ -363,7 +431,6 @@ def handle_stt_message(message):
         if not message_dict.get('text'):  # Handles cases where text is "" or missing
             #print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TARS: Going Idle...")
             return
-        
         #Print the response
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] USER: {message_dict['text']}")
 
@@ -372,19 +439,15 @@ def handle_stt_message(message):
             print("Shutting down the PC...")
             os.system('shutdown /s /t 0')
             return  # Exit function after issuing shutdown command
-        
         # Process the message using process_completion
         global start_time, latest_text_to_read
         start_time = time.time()  # Record the start time for tracking
         reply = process_completion(message_dict['text'])  # Process the message
         latest_text_to_read = reply  # Store the reply for later use
-        
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] TARS: {reply}")
-
         # Stream TTS audio to speakers
         #print("Fetching TTS audio...")
         tts_stream = get_tts_stream(reply, ttsurl, ttsclone)  # Send reply text to TTS
-        
         # Play the audio stream
         #print("Playing TTS audio...")
         play_audio_stream(tts_stream)
