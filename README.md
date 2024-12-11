@@ -37,9 +37,12 @@ My Hardware:
 
 
 Screws Needed (atleast):
-6  M20
-40 M14
-76 M10
+
+6  M3 20mm
+
+40 M3 14mm
+
+76 M3 10mm
 
 
 Rods:
