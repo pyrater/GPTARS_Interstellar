@@ -369,5 +369,3 @@ def starHandMinus():
     time.sleep(0.0001)
     print("decrease starHand")
     print(starHand) 
-
-stepForward()
