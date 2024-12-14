@@ -2,8 +2,9 @@ from __future__ import division
 import time
 import Adafruit_PCA9685
 from threading import Thread
+import smbus
 
-pwm = Adafruit_PCA9685.PCA9685()
+pwm = Adafruit_PCA9685.PCA9685(busnum=1)  # Specify I2C bus 1
 
 # Set frequency to 60hz, good for servos.
 pwm.set_pwm_freq(60)
@@ -368,3 +369,5 @@ def starHandMinus():
     time.sleep(0.0001)
     print("decrease starHand")
     print(starHand) 
+
+stepForward()
